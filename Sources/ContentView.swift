@@ -1,19 +1,56 @@
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
+    @Query(sort: \Subject.position) private var subjects: [Subject]
+    @State private var selectedSubjectID: Subject.ID?
+    @State private var showingNewSubject = false
+
+    private var selectedSubject: Subject? {
+        subjects.first { $0.id == selectedSubjectID }
+    }
+
     var body: some View {
-        #if os(iOS)
-        NavigationStack {
-            HomeView()
-        }
-        #else
         NavigationSplitView {
-            List { Text("Subjects") }
-            .navigationSplitViewColumnWidth(min: 160, ideal: 200)
+            List(selection: $selectedSubjectID) {
+                ForEach(subjects) { subject in
+                    NavigationLink(value: subject.id) {
+                        SubjectRow(subject: subject)
+                    }
+                }
+            }
+            .navigationTitle("Shiken")
+            .overlay {
+                if subjects.isEmpty {
+                    ContentUnavailableView(
+                        "No subjects yet",
+                        systemImage: "book.closed",
+                        description: Text("Add a subject and its exam date — the plan builds from there.")
+                    )
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingNewSubject = true
+                    } label: {
+                        Label("Add subject", systemImage: "plus")
+                    }
+                    .help("Add a subject")
+                }
+            }
         } detail: {
-            HomeView()
+            if let subject = selectedSubject {
+                PlannerView(subject: subject)
+            } else {
+                HomeView()
+            }
         }
-        #endif
+        .sheet(isPresented: $showingNewSubject) {
+            SubjectEditorSheet { newID in
+                selectedSubjectID = newID
+            }
+        }
     }
 }
 
@@ -22,6 +59,7 @@ struct HomeView: View {
         VStack(spacing: DesignSystem.spaceL()) {
             Image(systemName: "square.grid.2x2.fill")
                 .font(.system(size: DesignSystem.typeHero()))
+                .foregroundStyle(.quaternary)
 
             Text("Shiken")
                 .font(.system(size: DesignSystem.typeDisplay(), weight: .semibold))
@@ -31,8 +69,5 @@ struct HomeView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        #if os(macOS)
-        .padding()
-        #endif
     }
 }

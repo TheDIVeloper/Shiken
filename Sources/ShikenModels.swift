@@ -13,16 +13,18 @@ final class Subject {
     var name: String = ""
     var examDate: Date?
     var accentHex: String = "9A8C98"
+    var dailyMinutes: Int = 60
     var position: Int = 0
     var createdAt: Date = Date.now
 
     @Relationship(deleteRule: .cascade, inverse: \Topic.subject)
     var topics: [Topic] = []
 
-    init(name: String, examDate: Date? = nil, accentHex: String = "9A8C98", position: Int = 0) {
+    init(name: String, examDate: Date? = nil, accentHex: String = "9A8C98", dailyMinutes: Int = 60, position: Int = 0) {
         self.name = name
         self.examDate = examDate
         self.accentHex = accentHex
+        self.dailyMinutes = dailyMinutes
         self.position = position
     }
 }

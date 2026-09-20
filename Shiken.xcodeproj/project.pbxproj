@@ -12,9 +12,13 @@
 		22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
 		365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16ADCB0F880F1588FFF52907 /* ContentView.swift */; };
 		3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */; };
+		53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
 		67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
 		7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
+		9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
+		A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
 		BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
+		C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
 		CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
@@ -34,8 +38,10 @@
 		116AA1865DC2FE2CAFD6F7EC /* ShikenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShikenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		16ADCB0F880F1588FFF52907 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1A55A656AD6D69DEE215743E /* PlannerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngine.swift; sourceTree = "<group>"; };
+		1C3015A0AD48FABD017F3E8D /* PlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerView.swift; sourceTree = "<group>"; };
 		25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenApp.swift; sourceTree = "<group>"; };
 		39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shiken macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectsView.swift; sourceTree = "<group>"; };
 		AACF642EDBDE1FC60837DF0C /* Shiken iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Shiken iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2BA4EE1925DE1220042705B /* ShikenModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenModels.swift; sourceTree = "<group>"; };
 		DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngineTests.swift; sourceTree = "<group>"; };
@@ -67,8 +73,10 @@
 				16ADCB0F880F1588FFF52907 /* ContentView.swift */,
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
 				1A55A656AD6D69DEE215743E /* PlannerEngine.swift */,
+				1C3015A0AD48FABD017F3E8D /* PlannerView.swift */,
 				25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */,
 				B2BA4EE1925DE1220042705B /* ShikenModels.swift */,
+				4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -183,8 +191,10 @@
 				1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */,
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
 				7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */,
+				C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */,
 				19F7481E04979BE345D80DF2 /* ShikenApp.swift in Sources */,
 				22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */,
+				9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,8 +213,10 @@
 				365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */,
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
 				F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */,
+				53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */,
 				BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */,
 				67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */,
+				A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
