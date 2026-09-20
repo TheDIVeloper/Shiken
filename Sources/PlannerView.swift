@@ -340,7 +340,8 @@ struct PlannerView: View {
     private func weekLabel(_ week: Int, weeks: Int) -> String {
         if week == 0 { return "Exam" }
         let remaining = weeks - 1 - week
-        return remaining == 0 ? "1w" : "\(remaining)w"
+        if remaining == 0 { return "this wk" }
+        return "\(remaining)w"
     }
 
     // MARK: Mutations
