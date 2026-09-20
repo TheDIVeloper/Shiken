@@ -4,6 +4,7 @@ import SwiftData
 enum SidebarSelection: Hashable {
     case focus
     case sessions
+    case review
     case subject(UUID)
 }
 
@@ -22,6 +23,8 @@ struct ContentView: View {
                         .tag(SidebarSelection.focus)
                     Label("Sessions", systemImage: "list.bullet.rectangle.portrait")
                         .tag(SidebarSelection.sessions)
+                    Label("Review", systemImage: "chart.bar.xaxis")
+                        .tag(SidebarSelection.review)
                 }
 
                 Section("Subjects") {
@@ -76,6 +79,8 @@ struct ContentView: View {
             FocusView()
         case .sessions:
             SessionLogView()
+        case .review:
+            ReviewView()
         case .subject(let id):
             if let subject = subjects.first(where: { $0.id == id }) {
                 PlannerView(subject: subject)
