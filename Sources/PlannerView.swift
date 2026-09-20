@@ -54,9 +54,9 @@ struct PlannerView: View {
         }
         .navigationTitle(subject.name)
         .onAppear { reconcile() }
-        .onChange(of: subject.examDate) { reconcile() }
-        .onChange(of: subject.dailyMinutes) { reconcile() }
-        .onChange(of: subject.topics.map { "\($0.persistentModelID)-\($0.weight)" }.joined()) { reconcile() }
+        .onChange(of: subject.examDate) { _, _ in reconcile() }
+        .onChange(of: subject.dailyMinutes) { _, _ in reconcile() }
+        .onChange(of: subject.topics.map { "\($0.persistentModelID)-\($0.weight)" }.joined()) { _, _ in reconcile() }
     }
 
     // MARK: Header

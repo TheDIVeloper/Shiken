@@ -1,27 +1,39 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
-    @Query(sort: \Subject.position) private var subjects: [Subject]
-    @State private var selectedSubjectID: Subject.ID?
-    @State private var showingNewSubject = false
+enum SidebarSelection: Hashable {
+    case focus
+    case sessions
+    case subject(UUID)
+}
 
-    private var selectedSubject: Subject? {
-        subjects.first { $0.id == selectedSubjectID }
-    }
+struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Query(sort: \Subject.position) private var subjects: [Subject]
+    @State private var selection: SidebarSelection?
+    @State private var showingNewSubject = false
+    @State private var focusTimer = FocusTimer()
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedSubjectID) {
-                ForEach(subjects) { subject in
-                    NavigationLink(value: subject.id) {
+            List(selection: $selection) {
+                Section("Study") {
+                    Label("Focus", systemImage: "timer")
+                        .tag(SidebarSelection.focus)
+                    Label("Sessions", systemImage: "list.bullet.rectangle.portrait")
+                        .tag(SidebarSelection.sessions)
+                }
+
+                Section("Subjects") {
+                    ForEach(subjects) { subject in
                         SubjectRow(subject: subject)
+                            .tag(SidebarSelection.subject(subject.id))
                     }
                 }
             }
             .navigationTitle("Shiken")
             .overlay {
-                if subjects.isEmpty {
+                if subjects.isEmpty && selection == nil {
                     ContentUnavailableView(
                         "No subjects yet",
                         systemImage: "book.closed",
@@ -40,16 +52,38 @@ struct ContentView: View {
                 }
             }
         } detail: {
-            if let subject = selectedSubject {
+            detail
+        }
+        .environment(focusTimer)
+        .sheet(isPresented: $showingNewSubject) {
+            SubjectEditorSheet { newID in
+                selection = .subject(newID)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                focusTimer.awayEnd()
+            } else {
+                focusTimer.awayBegin()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var detail: some View {
+        switch selection {
+        case .focus:
+            FocusView()
+        case .sessions:
+            SessionLogView()
+        case .subject(let id):
+            if let subject = subjects.first(where: { $0.id == id }) {
                 PlannerView(subject: subject)
             } else {
                 HomeView()
             }
-        }
-        .sheet(isPresented: $showingNewSubject) {
-            SubjectEditorSheet { newID in
-                selectedSubjectID = newID
-            }
+        case nil:
+            HomeView()
         }
     }
 }
