@@ -15,9 +15,16 @@ private struct WeekCell: Identifiable {
     let done: Bool
 }
 
+private enum PlanScale: String, CaseIterable, Identifiable {
+    case weekly, daily
+    var id: String { rawValue }
+    var label: String { rawValue.capitalized }
+}
+
 struct PlannerView: View {
     @Bindable var subject: Subject
     @Environment(\.modelContext) private var ctx
+    @State private var planScale: PlanScale = .weekly
 
     private var sortedTopics: [Topic] {
         subject.topics.sorted { $0.position < $1.position }
@@ -120,45 +127,50 @@ struct PlannerView: View {
     }
 
     private var planSection: some View {
-        Group {
+        VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
             if subject.examDate == nil {
-                emptyPlan
+                planHeading
+                Text("Set an exam date for \(subject.name) to generate the week-by-week plan.")
+                    .font(.system(size: DesignSystem.typeBody()))
+                    .foregroundStyle(.secondary)
             } else if inputs.isEmpty {
-                VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
-                    Label("Plan", systemImage: "square.grid.2x2")
-                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("Add a topic and the week plan builds itself.")
-                        .font(.system(size: DesignSystem.typeBody()))
-                        .foregroundStyle(.secondary)
-                }
+                planHeading
+                Text("Add a topic and the week plan builds itself.")
+                    .font(.system(size: DesignSystem.typeBody()))
+                    .foregroundStyle(.secondary)
             } else {
-                planGrid
+                HStack {
+                    planHeading
+                    Spacer()
+                    Picker("Scale", selection: $planScale) {
+                        ForEach(PlanScale.allCases) { scale in
+                            Text(scale.label).tag(scale)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 200)
+                }
+                if planScale == .daily {
+                    dailyGrid
+                } else {
+                    planGrid
+                }
             }
         }
     }
 
-    private var emptyPlan: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
-            Label("Plan", systemImage: "square.grid.2x2")
-                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text("Set an exam date for \(subject.name) to generate the week-by-week plan.")
-                .font(.system(size: DesignSystem.typeBody()))
-                .foregroundStyle(.secondary)
-        }
+    private var planHeading: some View {
+        Label("Plan", systemImage: "square.grid.2x2")
+            .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+            .foregroundStyle(.secondary)
     }
 
     private var planGrid: some View {
         let weeks = (blocks.map(\.weekIndex).max() ?? 0) + 1 // 0 = exam week
         let columns = (0..<weeks).reversed().map { $0 } // farthest week first, exam last
 
-        return VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
-            Label("Plan", systemImage: "square.grid.2x2")
-                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
+        return ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 0) {
                     // Sticky topic column
                     VStack(alignment: .leading, spacing: 0) {
@@ -186,7 +198,96 @@ struct PlannerView: View {
                 RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
                     .fill(DesignSystem.panelFill())
             )
+    }
+
+    private var dailyGrid: some View {
+        let weeks = (blocks.map(\.weekIndex).max() ?? 0) + 1
+        let currentWeek = weeks - 1 // the week we're in right now (0 = exam week)
+        let days = currentWeekDays
+        let weeklyMins = sortedTopics.map { plannedMinutes(topic: $0, week: currentWeek) ?? 0 }
+        let distribution = PlannerEngine.dailyBreakdown(weeklyMinutes: weeklyMins, days: days)
+
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Topic")
+                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(height: 44, alignment: .leading)
+                    ForEach(sortedTopics) { topic in
+                        Text(topic.title)
+                            .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+                            .lineLimit(1)
+                            .frame(minWidth: 150, maxWidth: 150, minHeight: 40, alignment: .leading)
+                            .padding(.leading, DesignSystem.spaceM())
+                    }
+                    Text("Total")
+                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(height: 44, alignment: .leading)
+                }
+                .padding(.trailing, DesignSystem.spaceM())
+
+                ForEach(0..<days, id: \.self) { day in
+                    dayColumn(day, distribution: distribution)
+                }
+            }
         }
+        .padding(DesignSystem.spaceS())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                .fill(DesignSystem.panelFill())
+        )
+    }
+
+    private var currentWeekDays: Int {
+        guard let exam = subject.examDate else { return 1 }
+        let days = Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: .now),
+            to: Calendar.current.startOfDay(for: exam)
+        ).day ?? 0
+        return max(1, min(7, days + 1))
+    }
+
+    private func dayColumn(_ day: Int, distribution: [[Int]]) -> some View {
+        let isToday = day == 0
+        let columnTotal = sortedTopics.indices.reduce(0) { $0 + distribution[$1][day] }
+
+        return VStack(alignment: .leading, spacing: 0) {
+            Text(dayLabel(day))
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .foregroundStyle(isToday ? DesignSystem.hexColor(subject.accentHex) : Color.secondary)
+                .frame(height: 44, alignment: .leading)
+
+            ForEach(sortedTopics.indices, id: \.self) { index in
+                Text("\(distribution[index][day])")
+                    .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+                    .frame(width: 56, height: 40, alignment: .center)
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                            .fill(isToday ? DesignSystem.hexColor(subject.accentHex).opacity(0.1) : Color.clear)
+                    )
+            }
+
+            Text("\(columnTotal)m")
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(height: 44, alignment: .leading)
+        }
+        .padding(.horizontal, DesignSystem.spaceXS())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                .fill(isToday ? DesignSystem.hexColor(subject.accentHex).opacity(0.06) : Color.clear)
+        )
+    }
+
+    private func dayLabel(_ day: Int) -> String {
+        if day == 0 { return "Today" }
+        if let date = Calendar.current.date(byAdding: .day, value: day, to: .now) {
+            return date.formatted(.dateTime.weekday(.short).day())
+        }
+        return "Day \(day + 1)"
     }
 
     private func weekColumn(_ week: Int, weeks: Int) -> some View {

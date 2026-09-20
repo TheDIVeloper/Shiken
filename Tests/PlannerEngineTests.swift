@@ -65,4 +65,29 @@ final class PlannerEngineTests: XCTestCase {
             XCTAssertEqual(sum, 45 * 7)
         }
     }
+
+    func testDailyBreakdownEvenSplit() {
+        XCTAssertEqual(PlannerEngine.dailyBreakdown(weeklyMinutes: [140], days: 7), [[20, 20, 20, 20, 20, 20, 20]])
+    }
+
+    func testDailyBreakdownRemainderOnEarliestDays() {
+        XCTAssertEqual(PlannerEngine.dailyBreakdown(weeklyMinutes: [153], days: 7), [[22, 22, 22, 22, 22, 22, 21]])
+    }
+
+    func testDailyBreakdownZeroAndEmpty() {
+        XCTAssertEqual(PlannerEngine.dailyBreakdown(weeklyMinutes: [0], days: 7), [[0, 0, 0, 0, 0, 0, 0]])
+        XCTAssertEqual(PlannerEngine.dailyBreakdown(weeklyMinutes: [], days: 7), [])
+    }
+
+    func testDailyBreakdownPreservesTotals() {
+        let input = [420, 153, 245]
+        let output = PlannerEngine.dailyBreakdown(weeklyMinutes: input, days: 7)
+        for (i, days) in output.enumerated() {
+            let base = input[i] / 7
+            let remainder = input[i] % 7
+            XCTAssertEqual(days.reduce(0, +), input[i])
+            XCTAssertEqual(days.filter { $0 == base + 1 }.count, remainder)
+            XCTAssertTrue(days.allSatisfy { $0 == base || $0 == base + 1 })
+        }
+    }
 }

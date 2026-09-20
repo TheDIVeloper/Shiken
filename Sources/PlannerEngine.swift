@@ -55,4 +55,17 @@ enum PlannerEngine {
         }
         return blocks
     }
+
+    /// Splits each topic's weekly minutes across `days` (default 7) as evenly as
+    /// possible: floor(W/days) plus the remainder spread one minute at a time onto
+    /// the earliest days. Totals are preserved exactly.
+    static func dailyBreakdown(weeklyMinutes: [Int], days: Int = 7) -> [[Int]] {
+        guard days > 0 else { return weeklyMinutes.map { [$0] } }
+        return weeklyMinutes.map { weekly in
+            guard weekly > 0 else { return Array(repeating: 0, count: days) }
+            let base = weekly / days
+            let remainder = weekly % days
+            return (0..<days).map { $0 < remainder ? base + 1 : base }
+        }
+    }
 }
