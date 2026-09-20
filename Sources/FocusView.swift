@@ -7,12 +7,30 @@ struct FocusView: View {
     @Query(sort: \Subject.position) private var subjects: [Subject]
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
     @AppStorage("focusLength") private var lengthMinutes: Int = 50
+    @AppStorage("customFocusMinutes") private var customFocusMinutes: Int = 45
 
     @State private var subjectID: UUID?
     @State private var topicID: UUID?
 
     private var subject: Subject? { subjects.first { $0.id == subjectID } }
     private var topic: Topic? { subject?.topics.first { $0.id == topicID } }
+
+    private var preset: Int {
+        [25, 50, 90].contains(lengthMinutes) ? lengthMinutes : -1
+    }
+
+    private var presetBinding: Binding<Int> {
+        Binding(
+            get: { preset },
+            set: { newValue in
+                if newValue == -1 {
+                    lengthMinutes = customFocusMinutes
+                } else {
+                    lengthMinutes = newValue
+                }
+            }
+        )
+    }
 
     private var todayFocused: Int {
         sessions
@@ -118,15 +136,26 @@ struct FocusView: View {
 
     private var controls: some View {
         VStack(spacing: DesignSystem.spaceM()) {
-            Picker("Length", selection: $lengthMinutes) {
+            Picker("Length", selection: presetBinding) {
                 Text("25m").tag(25)
                 Text("50m").tag(50)
                 Text("90m").tag(90)
+                Text("Custom").tag(-1)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
             .frame(maxWidth: 260)
             .disabled(timer.isActive)
+
+            if preset == -1 {
+                Stepper("Custom \(customFocusMinutes) min", value: $customFocusMinutes, in: 5...240, step: 5)
+                    .monospacedDigit()
+                    .frame(maxWidth: 260)
+                    .disabled(timer.isActive)
+                    .onChange(of: customFocusMinutes) { _, newValue in
+                        lengthMinutes = newValue
+                    }
+            }
 
             HStack(spacing: DesignSystem.spaceM()) {
                 switch timer.phase {

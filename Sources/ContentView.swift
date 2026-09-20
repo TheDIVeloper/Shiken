@@ -11,10 +11,13 @@ enum SidebarSelection: Hashable {
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var ctx
     @Query(sort: \Subject.position) private var subjects: [Subject]
     @AppStorage("trackInterruptions") private var trackInterruptions = true
     @State private var selection: SidebarSelection?
-    @State private var showingNewSubject = false
+    @State private var showingEditor = false
+    @State private var editingSubject: Subject?
+    @State private var deletingSubject: Subject?
     @State private var focusTimer = FocusTimer()
 
     var body: some View {
@@ -33,6 +36,19 @@ struct ContentView: View {
                     ForEach(subjects) { subject in
                         SubjectRow(subject: subject)
                             .tag(SidebarSelection.subject(subject.id))
+                            .contextMenu {
+                                Button {
+                                    editingSubject = subject
+                                    showingEditor = true
+                                } label: {
+                                    Label("Rename…", systemImage: "pencil")
+                                }
+                                Button(role: .destructive) {
+                                    deletingSubject = subject
+                                } label: {
+                                    Label("Delete…", systemImage: "trash")
+                                }
+                            }
                     }
                 }
 
@@ -54,7 +70,8 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        showingNewSubject = true
+                        editingSubject = nil
+                        showingEditor = true
                     } label: {
                         Label("Add subject", systemImage: "plus")
                     }
@@ -65,10 +82,23 @@ struct ContentView: View {
             detail
         }
         .environment(focusTimer)
-        .sheet(isPresented: $showingNewSubject) {
-            SubjectEditorSheet { newID in
+        .sheet(isPresented: $showingEditor) {
+            SubjectEditorSheet(subject: editingSubject) { newID in
                 selection = .subject(newID)
             }
+        }
+        .confirmationDialog(
+            "Delete \"\(deletingSubject?.name ?? "")?\"",
+            isPresented: Binding(
+                get: { deletingSubject != nil },
+                set: { if !$0 { deletingSubject = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) { deleteSubject() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Topics, plans, and sessions for this subject will be permanently removed.")
         }
         .onChange(of: scenePhase) { _, phase in
             if trackInterruptions {
@@ -103,6 +133,16 @@ struct ContentView: View {
         case nil:
             HomeView()
         }
+    }
+
+    private func deleteSubject() {
+        guard let subject = deletingSubject else { return }
+        if case .subject(let id) = selection, id == subject.id {
+            selection = nil
+        }
+        ctx.delete(subject)
+        try? ctx.save()
+        deletingSubject = nil
     }
 }
 

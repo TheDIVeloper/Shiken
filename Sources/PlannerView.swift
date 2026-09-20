@@ -179,33 +179,52 @@ struct PlannerView: View {
         let columns = (0..<weeks).reversed().map { $0 } // farthest week first, exam last
 
         return ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 0) {
-                    // Sticky topic column
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Topic")
-                            .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .frame(height: 28, alignment: .leading)
-                        ForEach(sortedTopics) { topic in
-                            Text(topic.title)
-                                .font(.system(size: DesignSystem.typeBody(), weight: .medium))
-                                .lineLimit(1)
-                                .frame(minWidth: 150, maxWidth: 150, minHeight: 32, alignment: .leading)
-                                .padding(.leading, DesignSystem.spaceM())
-                        }
-                    }
-                    .padding(.trailing, DesignSystem.spaceM())
-
-                    ForEach(Array(columns.enumerated()), id: \.element) { _, week in
-                        weekColumn(week, weeks: weeks)
-                    }
+            HStack(alignment: .top, spacing: DesignSystem.spaceXS()) {
+                stickyColumn(title: "Topic", foot: "Total")
+                ForEach(Array(columns.enumerated()), id: \.element) { _, week in
+                    weekColumn(week, weeks: weeks)
                 }
             }
-            .padding(DesignSystem.spaceS())
-            .background(
-                RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
-                    .fill(DesignSystem.panelFill())
-            )
+        }
+        .padding(DesignSystem.spaceS())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                .fill(DesignSystem.panelFill())
+        )
+    }
+
+    /// Shared row/column metrics so the sticky column and every data column align exactly.
+    private struct GridMetrics {
+        let header: CGFloat
+        let cell: CGFloat
+        let footer: CGFloat
+        let column: CGFloat
+        static let weekly = GridMetrics(header: 32, cell: 40, footer: 32, column: 104)
+        static let daily = GridMetrics(header: 44, cell: 40, footer: 44, column: 88)
+    }
+
+    private func stickyColumn(title: String, foot: String, metrics: GridMetrics = .weekly) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(height: metrics.header, alignment: .leading)
+                .padding(.leading, DesignSystem.spaceM())
+            ForEach(sortedTopics) { topic in
+                Text(topic.title)
+                    .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+                    .lineLimit(1)
+                    .frame(width: 150, height: metrics.cell, alignment: .leading)
+                    .padding(.leading, DesignSystem.spaceM())
+                    .padding(.trailing, DesignSystem.spaceM())
+            }
+            Text(foot)
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(height: metrics.footer, alignment: .leading)
+                .padding(.leading, DesignSystem.spaceM())
+        }
+        .padding(.trailing, DesignSystem.spaceM())
     }
 
     private var dailyGrid: some View {
@@ -216,25 +235,8 @@ struct PlannerView: View {
         let distribution = PlannerEngine.dailyBreakdown(weeklyMinutes: weeklyMins, days: days)
 
         return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Topic")
-                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(height: 44, alignment: .leading)
-                    ForEach(sortedTopics) { topic in
-                        Text(topic.title)
-                            .font(.system(size: DesignSystem.typeBody(), weight: .medium))
-                            .lineLimit(1)
-                            .frame(minWidth: 150, maxWidth: 150, minHeight: 40, alignment: .leading)
-                            .padding(.leading, DesignSystem.spaceM())
-                    }
-                    Text("Total")
-                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(height: 44, alignment: .leading)
-                }
-                .padding(.trailing, DesignSystem.spaceM())
+            HStack(alignment: .top, spacing: DesignSystem.spaceXS()) {
+                stickyColumn(title: "Topic", foot: "Total", metrics: .daily)
 
                 ForEach(0..<days, id: \.self) { day in
                     dayColumn(day, distribution: distribution)
@@ -260,18 +262,20 @@ struct PlannerView: View {
 
     private func dayColumn(_ day: Int, distribution: [[Int]]) -> some View {
         let isToday = day == 0
+        let width = GridMetrics.daily.column
         let columnTotal = sortedTopics.indices.reduce(0) { $0 + distribution[$1][day] }
 
-        return VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .center, spacing: 0) {
             Text(dayLabel(day))
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
                 .foregroundStyle(isToday ? DesignSystem.hexColor(subject.accentHex) : Color.secondary)
-                .frame(height: 44, alignment: .leading)
+                .lineLimit(1)
+                .frame(width: width, height: GridMetrics.daily.header, alignment: .center)
 
             ForEach(sortedTopics.indices, id: \.self) { index in
                 Text("\(distribution[index][day])")
                     .font(.system(size: DesignSystem.typeBody(), weight: .medium))
-                    .frame(width: 56, height: 40, alignment: .center)
+                    .frame(width: width, height: GridMetrics.daily.cell, alignment: .center)
                     .background(
                         RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
                             .fill(isToday ? DesignSystem.hexColor(subject.accentHex).opacity(0.1) : Color.clear)
@@ -281,9 +285,8 @@ struct PlannerView: View {
             Text("\(columnTotal)m")
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(height: 44, alignment: .leading)
+                .frame(width: width, height: GridMetrics.daily.footer, alignment: .center)
         }
-        .padding(.horizontal, DesignSystem.spaceXS())
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
                 .fill(isToday ? DesignSystem.hexColor(subject.accentHex).opacity(0.06) : Color.clear)
@@ -299,11 +302,14 @@ struct PlannerView: View {
     }
 
     private func weekColumn(_ week: Int, weeks: Int) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let width = GridMetrics.weekly.column
+
+        return VStack(alignment: .center, spacing: 0) {
             Text(weekLabel(week, weeks: weeks))
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(height: 28, alignment: .leading)
+                .lineLimit(1)
+                .frame(width: width, height: GridMetrics.weekly.header, alignment: .center)
 
             ForEach(sortedTopics) { topic in
                 if let block = doneMap[PlanKey(topicID: topic.id, week: week)],
@@ -316,7 +322,7 @@ struct PlannerView: View {
                             .font(.system(size: DesignSystem.typeBody(), weight: .medium))
                             .foregroundStyle(block.isDone ? Color.secondary : Color.primary)
                             .strikethrough(block.isDone, color: .secondary)
-                            .frame(width: 64, height: 32, alignment: .center)
+                            .frame(width: width, height: GridMetrics.weekly.cell, alignment: .center)
                             .background(
                                 RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
                                     .fill(block.isDone ? DesignSystem.hexColor(subject.accentHex).opacity(0.14) : Color.clear)
@@ -330,9 +336,8 @@ struct PlannerView: View {
             Text(totalFor(week))
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(height: 28, alignment: .leading)
+                .frame(width: width, height: GridMetrics.weekly.footer, alignment: .center)
         }
-        .padding(.horizontal, DesignSystem.spaceXS())
     }
 
     private func weeklyMinutes(_ topic: Topic) -> Int? {

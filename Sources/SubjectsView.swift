@@ -37,17 +37,28 @@ struct SubjectRow: View {
 struct SubjectEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var ctx
+    var subject: Subject?
     var onSave: (UUID) -> Void
 
-    @State private var name: String = ""
-    @State private var examDate: Date = Calendar.current.date(byAdding: .day, value: 60, to: .now) ?? .now
+    @State private var name: String
+    @State private var examDate: Date
     @State private var dailyMinutes: Int
-    @State private var accentHex: String = DesignSystem.subjectAccent()
+    @State private var accentHex: String
 
-    init(onSave: @escaping (UUID) -> Void) {
+    init(subject: Subject? = nil, onSave: @escaping (UUID) -> Void) {
+        self.subject = subject
         self.onSave = onSave
-        let saved = UserDefaults.standard.integer(forKey: "defaultDailyMinutes")
-        _dailyMinutes = State(initialValue: saved >= 15 ? saved : 60)
+        if let subject {
+            _name = State(initialValue: subject.name)
+            _examDate = State(initialValue: subject.examDate ?? Calendar.current.date(byAdding: .day, value: 60, to: .now) ?? .now)
+            _dailyMinutes = State(initialValue: subject.dailyMinutes)
+            _accentHex = State(initialValue: subject.accentHex)
+        } else {
+            _name = State(initialValue: "")
+            _examDate = State(initialValue: Calendar.current.date(byAdding: .day, value: 60, to: .now) ?? .now)
+            _dailyMinutes = State(initialValue: max(15, UserDefaults.standard.integer(forKey: "defaultDailyMinutes")))
+            _accentHex = State(initialValue: DesignSystem.subjectAccent())
+        }
     }
 
     var body: some View {
@@ -89,7 +100,7 @@ struct SubjectEditorSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Add subject") { save() }
+                Button(subject == nil ? "Add subject" : "Save") { save() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
@@ -101,12 +112,22 @@ struct SubjectEditorSheet: View {
     private func save() {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        let position = (try? ctx.fetchCount(FetchDescriptor<Subject>())) ?? 0
-        let subject = Subject(name: trimmed, examDate: examDate, accentHex: accentHex, position: position)
-        subject.dailyMinutes = dailyMinutes
-        ctx.insert(subject)
-        try? ctx.save()
-        onSave(subject.id)
+
+        if let subject {
+            subject.name = trimmed
+            subject.examDate = examDate
+            subject.dailyMinutes = dailyMinutes
+            subject.accentHex = accentHex
+            try? ctx.save()
+            onSave(subject.id)
+        } else {
+            let position = (try? ctx.fetchCount(FetchDescriptor<Subject>())) ?? 0
+            let subject = Subject(name: trimmed, examDate: examDate, accentHex: accentHex, position: position)
+            subject.dailyMinutes = dailyMinutes
+            ctx.insert(subject)
+            try? ctx.save()
+            onSave(subject.id)
+        }
         dismiss()
     }
 }
