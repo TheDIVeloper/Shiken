@@ -105,7 +105,7 @@ struct PlannerView: View {
 
             VStack(spacing: 0) {
                 ForEach(sortedTopics) { topic in
-                    TopicRow(topic: topic, isLast: sortedTopics.last?.persistentModelID == topic.persistentModelID) {
+                    TopicRow(topic: topic, weeklyMinutes: weeklyMinutes(topic), isLast: sortedTopics.last?.persistentModelID == topic.persistentModelID) {
                         delete(topic)
                     }
                 }
@@ -123,6 +123,10 @@ struct PlannerView: View {
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text("Shares are relative — slide a topic up or down to dedicate more or less of the week to it, and the plan stays exactly \(subject.dailyMinutes * 7)m/week.")
+                .font(.system(size: DesignSystem.typeCaption()))
+                .foregroundStyle(.tertiary)
         }
     }
 
@@ -235,9 +239,9 @@ struct PlannerView: View {
         }
         .padding(DesignSystem.spaceS())
         .background(
-            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
-                .fill(DesignSystem.panelFill())
-        )
+                RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                    .fill(DesignSystem.panelFill())
+            )
     }
 
     private var currentWeekDays: Int {
@@ -327,6 +331,10 @@ struct PlannerView: View {
         .padding(.horizontal, DesignSystem.spaceXS())
     }
 
+    private func weeklyMinutes(_ topic: Topic) -> Int? {
+        plannedMinutes(topic: topic, week: blocks.map(\.weekIndex).max() ?? 0)
+    }
+
     private func plannedMinutes(topic: Topic, week: Int) -> Int? {
         let topicID = topic.id
         return blocks.first { $0.topicID == topicID && $0.weekIndex == week }?.minutes
@@ -340,7 +348,7 @@ struct PlannerView: View {
     private func weekLabel(_ week: Int, weeks: Int) -> String {
         if week == 0 { return "Exam" }
         let remaining = weeks - 1 - week
-        if remaining == 0 { return "this wk" }
+        if remaining == 0 { return "This Week" }
         return "\(remaining)w"
     }
 
@@ -392,8 +400,16 @@ struct PlannerView: View {
 
 private struct TopicRow: View {
     @Bindable var topic: Topic
+    let weeklyMinutes: Int?
     let isLast: Bool
     let onDelete: () -> Void
+
+    private var shareBinding: Binding<Double> {
+        Binding(
+            get: { Double(topic.weight) },
+            set: { topic.weight = Int($0.rounded(.down)) }
+        )
+    }
 
     var body: some View {
         HStack(spacing: DesignSystem.spaceM()) {
@@ -403,12 +419,18 @@ private struct TopicRow: View {
 
             Spacer()
 
-            Stepper(value: $topic.weight, in: 1...5) {
-                Text("w\(topic.weight)")
-                    .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+            if let weeklyMinutes {
+                Text("≈ \(weeklyMinutes)m/wk")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.secondary)
             }
-            .labelsHidden()
-            .frame(width: 90)
+
+            Slider(value: shareBinding, in: 1...100, step: 5)
+                .frame(width: 120)
+
+            Text("\(topic.weight)%")
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .frame(minWidth: 40, alignment: .trailing)
 
             Button(role: .destructive) {
                 onDelete()

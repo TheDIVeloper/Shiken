@@ -33,7 +33,9 @@ final class Subject {
 final class Topic {
     var id: UUID = UUID()
     var title: String = ""
-    var weight: Int = 1
+    // Relative share of the week's study time (1–100). The planner splits the
+    // dailyMinutes x 7 week across topics by this share; it is not exact minutes.
+    var weight: Int = 20
     var position: Int = 0
     var createdAt: Date = Date.now
 
@@ -45,7 +47,7 @@ final class Topic {
     @Relationship(deleteRule: .cascade, inverse: \StudySession.topic)
     var sessions: [StudySession] = []
 
-    init(title: String, weight: Int = 1, position: Int = 0) {
+    init(title: String, weight: Int = 20, position: Int = 0) {
         self.title = title
         self.weight = weight
         self.position = position
