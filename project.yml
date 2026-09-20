@@ -2,6 +2,9 @@ name: Shiken
 options:
   minimumXcodeGenVersion: "2.46.0"
   bundleIdPrefix: com.shiken
+  deploymentTarget:
+    macOS: "15.0"
+    iOS: "18.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -20,6 +23,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: Shiken
+        PRODUCT_MODULE_NAME: ShikenMac
         PRODUCT_BUNDLE_IDENTIFIER: com.shiken.Shiken.mac
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Shiken
@@ -38,6 +42,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: Shiken
+        PRODUCT_MODULE_NAME: ShikenIOS
         PRODUCT_BUNDLE_IDENTIFIER: com.shiken.Shiken.ios
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Shiken
@@ -45,3 +50,41 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
         SUPPORTS_MACCATALYST: NO
+
+  ShikenTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: Shiken macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shiken.ShikenTests
+        GENERATE_INFOPLIST_FILE: YES
+        MACOSX_DEPLOYMENT_TARGET: "15.0"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Shiken.app/Contents/MacOS/Shiken"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  Shiken macOS:
+    build:
+      targets:
+        Shiken macOS: all
+    run:
+      config: Debug
+  Shiken iOS:
+    build:
+      targets:
+        Shiken iOS: all
+    run:
+      config: Debug
+  Shiken Tests:
+    build:
+      targets:
+        Shiken macOS: [test]
+        ShikenTests: [test]
+    test:
+      config: Debug
+      targets:
+        - ShikenTests

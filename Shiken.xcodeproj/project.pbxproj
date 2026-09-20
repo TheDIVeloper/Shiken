@@ -7,16 +7,38 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16ADCB0F880F1588FFF52907 /* ContentView.swift */; };
 		19F7481E04979BE345D80DF2 /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
+		22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
+		365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16ADCB0F880F1588FFF52907 /* ContentView.swift */; };
+		3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */; };
+		67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
+		7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
 		BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
 		CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
+		F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		36F4D529F699623C9F31CCD2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 677DBB2FAF6D9CA7F643F004 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A243E1A53C0704EF7ED3F61C;
+			remoteInfo = "Shiken macOS";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		116AA1865DC2FE2CAFD6F7EC /* ShikenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShikenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		16ADCB0F880F1588FFF52907 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1A55A656AD6D69DEE215743E /* PlannerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngine.swift; sourceTree = "<group>"; };
 		25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenApp.swift; sourceTree = "<group>"; };
 		39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shiken macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AACF642EDBDE1FC60837DF0C /* Shiken iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Shiken iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B2BA4EE1925DE1220042705B /* ShikenModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenModels.swift; sourceTree = "<group>"; };
+		DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngineTests.swift; sourceTree = "<group>"; };
 		F3074D790E060616F6B0069D /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -26,15 +48,27 @@
 			children = (
 				AACF642EDBDE1FC60837DF0C /* Shiken iOS.app */,
 				39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */,
+				116AA1865DC2FE2CAFD6F7EC /* ShikenTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		482C6B42C5E8590C7FEFF841 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		88FB9030DDD898B0FEE4E600 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				16ADCB0F880F1588FFF52907 /* ContentView.swift */,
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
+				1A55A656AD6D69DEE215743E /* PlannerEngine.swift */,
 				25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */,
+				B2BA4EE1925DE1220042705B /* ShikenModels.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -43,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				88FB9030DDD898B0FEE4E600 /* Sources */,
+				482C6B42C5E8590C7FEFF841 /* Tests */,
 				2953DB25604ACE7E00C99838 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -84,6 +119,24 @@
 			productReference = 39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */;
 			productType = "com.apple.product-type.application";
 		};
+		FA183EE7A7F79A2226006D9B /* ShikenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 317E20AE616D6DD67E1BB4D7 /* Build configuration list for PBXNativeTarget "ShikenTests" */;
+			buildPhases = (
+				BA90CBC272F6709D444AA37C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F069E28BC8927723BA49C372 /* PBXTargetDependency */,
+			);
+			name = ShikenTests;
+			packageProductDependencies = (
+			);
+			productName = ShikenTests;
+			productReference = 116AA1865DC2FE2CAFD6F7EC /* ShikenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -117,6 +170,7 @@
 			targets = (
 				A243E1A53C0704EF7ED3F61C /* Shiken macOS */,
 				5FB1D58927A4909E1B71662F /* Shiken iOS */,
+				FA183EE7A7F79A2226006D9B /* ShikenTests */,
 			);
 		};
 /* End PBXProject section */
@@ -126,8 +180,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */,
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
+				7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */,
 				19F7481E04979BE345D80DF2 /* ShikenApp.swift in Sources */,
+				22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA90CBC272F6709D444AA37C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,14 +200,43 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */,
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
+				F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */,
 				BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */,
+				67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		F069E28BC8927723BA49C372 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A243E1A53C0704EF7ED3F61C /* Shiken macOS */;
+			targetProxy = 36F4D529F699623C9F31CCD2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0F20950F29A90C9B3FFE212B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shiken.ShikenTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shiken.app/Contents/MacOS/Shiken";
+			};
+			name = Release;
+		};
 		17D7A7FB7C9A938797EE2971 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -161,6 +255,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.shiken.Shiken.mac;
+				PRODUCT_MODULE_NAME = ShikenMac;
 				PRODUCT_NAME = Shiken;
 				SDKROOT = macosx;
 			};
@@ -184,10 +279,29 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.shiken.Shiken.mac;
+				PRODUCT_MODULE_NAME = ShikenMac;
 				PRODUCT_NAME = Shiken;
 				SDKROOT = macosx;
 			};
 			name = Release;
+		};
+		3699B3D9D7325A993C085675 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shiken.ShikenTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shiken.app/Contents/MacOS/Shiken";
+			};
+			name = Debug;
 		};
 		7515D6CCCEDEEABB7DF83CF8 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -241,6 +355,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -266,6 +382,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.shiken.Shiken.ios;
+				PRODUCT_MODULE_NAME = ShikenIOS;
 				PRODUCT_NAME = Shiken;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -319,6 +436,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -343,6 +462,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.shiken.Shiken.ios;
+				PRODUCT_MODULE_NAME = ShikenIOS;
 				PRODUCT_NAME = Shiken;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -353,6 +473,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		317E20AE616D6DD67E1BB4D7 /* Build configuration list for PBXNativeTarget "ShikenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3699B3D9D7325A993C085675 /* Debug */,
+				0F20950F29A90C9B3FFE212B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		39D8E3BED71AEFBF2D11F17E /* Build configuration list for PBXProject "Shiken" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
