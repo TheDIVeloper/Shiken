@@ -41,8 +41,14 @@ struct SubjectEditorSheet: View {
 
     @State private var name: String = ""
     @State private var examDate: Date = Calendar.current.date(byAdding: .day, value: 60, to: .now) ?? .now
-    @State private var dailyMinutes: Int = 60
+    @State private var dailyMinutes: Int
     @State private var accentHex: String = DesignSystem.subjectAccent()
+
+    init(onSave: @escaping (UUID) -> Void) {
+        self.onSave = onSave
+        let saved = UserDefaults.standard.integer(forKey: "defaultDailyMinutes")
+        _dailyMinutes = State(initialValue: saved >= 15 ? saved : 60)
+    }
 
     var body: some View {
         VStack(spacing: 0) {

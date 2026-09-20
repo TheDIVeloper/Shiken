@@ -5,12 +5,14 @@ enum SidebarSelection: Hashable {
     case focus
     case sessions
     case review
+    case settings
     case subject(UUID)
 }
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Subject.position) private var subjects: [Subject]
+    @AppStorage("trackInterruptions") private var trackInterruptions = true
     @State private var selection: SidebarSelection?
     @State private var showingNewSubject = false
     @State private var focusTimer = FocusTimer()
@@ -32,6 +34,11 @@ struct ContentView: View {
                         SubjectRow(subject: subject)
                             .tag(SidebarSelection.subject(subject.id))
                     }
+                }
+
+                Section("Shiken") {
+                    Label("Settings", systemImage: "gear")
+                        .tag(SidebarSelection.settings)
                 }
             }
             .navigationTitle("Shiken")
@@ -64,10 +71,14 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
-                focusTimer.awayEnd()
+            if trackInterruptions {
+                if phase == .active {
+                    focusTimer.awayEnd()
+                } else {
+                    focusTimer.awayBegin()
+                }
             } else {
-                focusTimer.awayBegin()
+                focusTimer.awayEnd()
             }
         }
     }
@@ -81,6 +92,8 @@ struct ContentView: View {
             SessionLogView()
         case .review:
             ReviewView()
+        case .settings:
+            SettingsView()
         case .subject(let id):
             if let subject = subjects.first(where: { $0.id == id }) {
                 PlannerView(subject: subject)

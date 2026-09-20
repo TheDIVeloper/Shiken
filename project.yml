@@ -20,12 +20,14 @@ targets:
     platform: macOS
     sources:
       - path: Sources
+      - path: Assets
     settings:
       base:
         PRODUCT_NAME: Shiken
         PRODUCT_MODULE_NAME: ShikenMac
         PRODUCT_BUNDLE_IDENTIFIER: com.shiken.Shiken.mac
         GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Shiken
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Shiken"
@@ -39,12 +41,14 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      - path: Assets
     settings:
       base:
         PRODUCT_NAME: Shiken
         PRODUCT_MODULE_NAME: ShikenIOS
         PRODUCT_BUNDLE_IDENTIFIER: com.shiken.Shiken.ios
         GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Shiken
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         TARGETED_DEVICE_FAMILY: "1,2"
