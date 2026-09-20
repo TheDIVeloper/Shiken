@@ -8,28 +8,25 @@ struct FocusView: View {
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
     @AppStorage("focusLength") private var lengthMinutes: Int = 50
     @AppStorage("customFocusMinutes") private var customFocusMinutes: Int = 45
+    @State private var selectedLength: Int = 50
+    @State private var customMinutesText = "45"
 
     @State private var subjectID: UUID?
     @State private var topicID: UUID?
+
+    init() {
+        let storedLength = UserDefaults.standard.integer(forKey: "focusLength")
+        _selectedLength = State(initialValue: [25, 50, 90].contains(storedLength) ? storedLength : -1)
+        let storedCustom = UserDefaults.standard.integer(forKey: "customFocusMinutes")
+        let safe = (1...240).contains(storedCustom) ? storedCustom : 45
+        _customMinutesText = State(initialValue: String(safe))
+    }
 
     private var subject: Subject? { subjects.first { $0.id == subjectID } }
     private var topic: Topic? { subject?.topics.first { $0.id == topicID } }
 
     private var preset: Int {
         [25, 50, 90].contains(lengthMinutes) ? lengthMinutes : -1
-    }
-
-    private var presetBinding: Binding<Int> {
-        Binding(
-            get: { preset },
-            set: { newValue in
-                if newValue == -1 {
-                    lengthMinutes = customFocusMinutes
-                } else {
-                    lengthMinutes = newValue
-                }
-            }
-        )
     }
 
     private var todayFocused: Int {
@@ -64,6 +61,13 @@ struct FocusView: View {
         }
         .onChange(of: lengthMinutes) { _, newValue in
             if !timer.isActive { timer.lengthMinutes = newValue }
+        }
+        .onChange(of: selectedLength) { _, newValue in
+            if newValue == -1 {
+                lengthMinutes = customFocusMinutes
+            } else {
+                lengthMinutes = newValue
+            }
         }
         .onChange(of: subjectID) { _, _ in topicID = nil }
         .onChange(of: timer.lastCompleted) { _, completed in
@@ -136,7 +140,7 @@ struct FocusView: View {
 
     private var controls: some View {
         VStack(spacing: DesignSystem.spaceM()) {
-            Picker("Length", selection: presetBinding) {
+            Picker("Length", selection: $selectedLength) {
                 Text("25m").tag(25)
                 Text("50m").tag(50)
                 Text("90m").tag(90)
@@ -147,14 +151,24 @@ struct FocusView: View {
             .frame(maxWidth: 260)
             .disabled(timer.isActive)
 
-            if preset == -1 {
-                Stepper("Custom \(customFocusMinutes) min", value: $customFocusMinutes, in: 5...240, step: 5)
-                    .monospacedDigit()
-                    .frame(maxWidth: 260)
-                    .disabled(timer.isActive)
-                    .onChange(of: customFocusMinutes) { _, newValue in
-                        lengthMinutes = newValue
-                    }
+            if selectedLength == -1 {
+                HStack(spacing: DesignSystem.spaceS()) {
+                    Text("Length")
+                        .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                        .foregroundStyle(.secondary)
+                    TextField("45", text: $customMinutesText)
+                        .textFieldStyle(.roundedBorder)
+                        .multilineTextAlignment(.center)
+                        .frame(width: 70)
+                        .disabled(timer.isActive)
+                        .onSubmit { commitCustomMinutes() }
+                        .onChange(of: customMinutesText) { _, _ in
+                            commitCustomMinutes()
+                        }
+                    Text("minutes")
+                        .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             HStack(spacing: DesignSystem.spaceM()) {
@@ -232,6 +246,14 @@ struct FocusView: View {
 
     private func timeString(_ seconds: Int) -> String {
         String(format: "%02d:%02d", seconds / 60, seconds % 60)
+    }
+
+    private func commitCustomMinutes() {
+        let raw = Int(customMinutesText.trimmingCharacters(in: .whitespaces)) ?? 0
+        let clamped = min(240, max(1, raw))
+        customMinutesText = String(clamped)
+        customFocusMinutes = clamped
+        lengthMinutes = clamped
     }
 
     private func stopAndRecord() {
