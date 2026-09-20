@@ -30,6 +30,10 @@ struct PlannerView: View {
         subject.topics.sorted { $0.position < $1.position }
     }
 
+    private var totalPriority: Int {
+        sortedTopics.map { max(1, $0.weight) }.reduce(0, +)
+    }
+
     private var inputs: [TopicPlan] {
         sortedTopics.map { TopicPlan(topicID: $0.id, title: $0.title, weight: max(1, $0.weight)) }
     }
@@ -105,7 +109,7 @@ struct PlannerView: View {
 
             VStack(spacing: 0) {
                 ForEach(sortedTopics) { topic in
-                    TopicRow(topic: topic, weeklyMinutes: weeklyMinutes(topic), isLast: sortedTopics.last?.persistentModelID == topic.persistentModelID) {
+                    TopicRow(topic: topic, totalPriority: totalPriority, weeklyMinutes: weeklyMinutes(topic), showsDaily: planScale == .daily, isLast: sortedTopics.last?.persistentModelID == topic.persistentModelID) {
                         delete(topic)
                     }
                 }
@@ -124,7 +128,7 @@ struct PlannerView: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("Shares are relative — slide a topic up or down to dedicate more or less of the week to it, and the plan stays exactly \(subject.dailyMinutes * 7)m/week.")
+            Text("Priorities are relative — dials are scaled to fill exactly \(subject.dailyMinutes)min/day · \(subject.dailyMinutes * 7)min/wk across all topics; the coloured % shows the effective split.")
                 .font(.system(size: DesignSystem.typeCaption()))
                 .foregroundStyle(.tertiary)
         }
@@ -400,15 +404,22 @@ struct PlannerView: View {
 
 private struct TopicRow: View {
     @Bindable var topic: Topic
+    let totalPriority: Int
     let weeklyMinutes: Int?
+    let showsDaily: Bool
     let isLast: Bool
     let onDelete: () -> Void
 
-    private var shareBinding: Binding<Double> {
+    private var priorityBinding: Binding<Double> {
         Binding(
             get: { Double(topic.weight) },
             set: { topic.weight = Int($0.rounded(.down)) }
         )
+    }
+
+    private var effectivePercent: Int {
+        guard totalPriority > 0 else { return 0 }
+        return Int((Double(max(1, topic.weight)) / Double(totalPriority) * 100).rounded())
     }
 
     var body: some View {
@@ -420,17 +431,20 @@ private struct TopicRow: View {
             Spacer()
 
             if let weeklyMinutes {
-                Text("≈ \(weeklyMinutes)m/wk")
+                Text(showsDaily ? "≈ \(max(1, weeklyMinutes / 7))m/day" : "≈ \(weeklyMinutes)m/wk")
                     .font(.system(size: DesignSystem.typeCaption()))
                     .foregroundStyle(.secondary)
             }
 
-            Slider(value: shareBinding, in: 1...100, step: 5)
+            Slider(value: priorityBinding, in: 1...100, step: 5)
                 .frame(width: 120)
+                .tint(DesignSystem.hexColor(topic.subject?.accentHex ?? "#A7B99C"))
 
-            Text("\(topic.weight)%")
+            Text("\(effectivePercent)%")
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                .frame(minWidth: 40, alignment: .trailing)
+                .monospacedDigit()
+                .foregroundStyle(DesignSystem.hexColor(topic.subject?.accentHex ?? "#A7B99C"))
+                .frame(minWidth: 44, alignment: .trailing)
 
             Button(role: .destructive) {
                 onDelete()
