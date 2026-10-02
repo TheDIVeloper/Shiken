@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 enum SidebarSelection: Hashable {
+    case plan
     case focus
     case sessions
     case review
@@ -24,6 +25,8 @@ struct ContentView: View {
         NavigationSplitView {
             List(selection: $selection) {
                 Section("Study") {
+                    Label("Plan", systemImage: "calendar")
+                        .tag(SidebarSelection.plan)
                     Label("Focus", systemImage: "timer")
                         .tag(SidebarSelection.focus)
                     Label("Sessions", systemImage: "list.bullet.rectangle.portrait")
@@ -116,6 +119,8 @@ struct ContentView: View {
     @ViewBuilder
     private var detail: some View {
         switch selection {
+        case .plan:
+            PlanOverviewView()
         case .focus:
             FocusView()
         case .sessions:

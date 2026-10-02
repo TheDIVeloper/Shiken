@@ -34,9 +34,17 @@ struct PlannerView: View {
         sortedTopics.map { max(1, $0.weight) }.reduce(0, +)
     }
 
+    /// Real topics if there are any, otherwise a single stand-in row for the
+    /// subject as a whole. Purely derived — nothing is written to SwiftData.
     private var inputs: [TopicPlan] {
-        sortedTopics.map { TopicPlan(topicID: $0.id, title: $0.title, weight: max(1, $0.weight)) }
+        PlannerEngine.effectiveTopics(
+            subjectID: subject.id,
+            subjectName: subject.name,
+            topics: sortedTopics.map { TopicPlan(topicID: $0.id, title: $0.title, weight: max(1, $0.weight)) }
+        )
     }
+
+    private var usesStandIn: Bool { inputs.contains(where: \.isSynthetic) }
 
     private var blocks: [ScheduledBlock] {
         guard let examDate = subject.examDate else { return [] }
@@ -119,6 +127,12 @@ struct PlannerView: View {
                     .fill(DesignSystem.panelFill())
             )
 
+            if usesStandIn {
+                Text("No topics yet, so \(subject.name) plans as one block. Add topics to split it up.")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.tertiary)
+            }
+
             Button {
                 addTopic()
             } label: {
@@ -139,11 +153,6 @@ struct PlannerView: View {
             if subject.examDate == nil {
                 planHeading
                 Text("Set an exam date for \(subject.name) to generate the week-by-week plan.")
-                    .font(.system(size: DesignSystem.typeBody()))
-                    .foregroundStyle(.secondary)
-            } else if inputs.isEmpty {
-                planHeading
-                Text("Add a topic and the week plan builds itself.")
                     .font(.system(size: DesignSystem.typeBody()))
                     .foregroundStyle(.secondary)
             } else {
@@ -210,13 +219,21 @@ struct PlannerView: View {
                 .foregroundStyle(.secondary)
                 .frame(height: metrics.header, alignment: .leading)
                 .padding(.leading, DesignSystem.spaceM())
-            ForEach(sortedTopics) { topic in
-                Text(topic.title)
-                    .font(.system(size: DesignSystem.typeBody(), weight: .medium))
-                    .lineLimit(1)
-                    .frame(width: 150, height: metrics.cell, alignment: .leading)
-                    .padding(.leading, DesignSystem.spaceM())
-                    .padding(.trailing, DesignSystem.spaceM())
+            ForEach(Array(inputs.enumerated()), id: \.element.topicID) { _, plan in
+                HStack(spacing: 4) {
+                    Text(plan.title)
+                        .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+                        .italic(plan.isSynthetic)
+                        .lineLimit(1)
+                    if plan.isSynthetic {
+                        Text("general")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .frame(width: 150, height: metrics.cell, alignment: .leading)
+                .padding(.leading, DesignSystem.spaceM())
+                .padding(.trailing, DesignSystem.spaceM())
             }
             Text(foot)
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
@@ -231,7 +248,7 @@ struct PlannerView: View {
         let weeks = (blocks.map(\.weekIndex).max() ?? 0) + 1
         let currentWeek = weeks - 1 // the week we're in right now (0 = exam week)
         let days = currentWeekDays
-        let weeklyMins = sortedTopics.map { plannedMinutes(topic: $0, week: currentWeek) ?? 0 }
+        let weeklyMins = inputs.map { plannedMinutes(plan: $0, week: currentWeek) ?? 0 }
         let distribution = PlannerEngine.dailyBreakdown(weeklyMinutes: weeklyMins, days: days)
 
         return ScrollView(.horizontal, showsIndicators: false) {
@@ -263,7 +280,7 @@ struct PlannerView: View {
     private func dayColumn(_ day: Int, distribution: [[Int]]) -> some View {
         let isToday = day == 0
         let width = GridMetrics.daily.column
-        let columnTotal = sortedTopics.indices.reduce(0) { $0 + distribution[$1][day] }
+        let columnTotal = inputs.indices.reduce(0) { $0 + distribution[$1][day] }
 
         return VStack(alignment: .center, spacing: 0) {
             Text(dayLabel(day))
@@ -272,7 +289,7 @@ struct PlannerView: View {
                 .lineLimit(1)
                 .frame(width: width, height: GridMetrics.daily.header, alignment: .center)
 
-            ForEach(sortedTopics.indices, id: \.self) { index in
+            ForEach(inputs.indices, id: \.self) { index in
                 Text("\(distribution[index][day])")
                     .font(.system(size: DesignSystem.typeBody(), weight: .medium))
                     .frame(width: width, height: GridMetrics.daily.cell, alignment: .center)
@@ -311,9 +328,10 @@ struct PlannerView: View {
                 .lineLimit(1)
                 .frame(width: width, height: GridMetrics.weekly.header, alignment: .center)
 
-            ForEach(sortedTopics) { topic in
-                if let block = doneMap[PlanKey(topicID: topic.id, week: week)],
-                   let minutes = plannedMinutes(topic: topic, week: week) {
+            ForEach(inputs) { plan in
+                if let block = doneMap[PlanKey(topicID: plan.topicID, week: week)],
+                   !plan.isSynthetic,
+                   let minutes = plannedMinutes(plan: plan, week: week) {
                     Button {
                         block.isDone.toggle()
                         try? ctx.save()
@@ -345,8 +363,11 @@ struct PlannerView: View {
     }
 
     private func plannedMinutes(topic: Topic, week: Int) -> Int? {
-        let topicID = topic.id
-        return blocks.first { $0.topicID == topicID && $0.weekIndex == week }?.minutes
+        plannedMinutes(plan: TopicPlan(topicID: topic.id, title: topic.title, weight: topic.weight), week: week)
+    }
+
+    private func plannedMinutes(plan: TopicPlan, week: Int) -> Int? {
+        blocks.first { $0.topicID == plan.topicID && $0.weekIndex == week }?.minutes
     }
 
     private func totalFor(_ week: Int) -> String {
@@ -390,8 +411,13 @@ struct PlannerView: View {
             }
         }
 
+        let realTopicIDs = Set(subject.topics.map(\.id))
+
         var wanted = Set<PlanKey>()
         for scheduled in PlannerEngine.schedule(topics: inputs, examDate: examDate, dailyMinutes: subject.dailyMinutes) {
+            // A stand-in row is derived, not stored — there is no Topic to hang a
+            // PlanBlock off, and inventing one would manufacture data on disk.
+            guard realTopicIDs.contains(scheduled.topicID) else { continue }
             let key = PlanKey(topicID: scheduled.topicID, week: scheduled.weekIndex)
             wanted.insert(key)
             if let existing = byKey[key] {

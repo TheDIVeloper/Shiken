@@ -15,6 +15,7 @@
 		358EA09FD1B880720105BAD7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 237BF5EFC78CFE1A0FCC5DCB /* Assets.xcassets */; };
 		365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16ADCB0F880F1588FFF52907 /* ContentView.swift */; };
 		3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */; };
+		4D6EB3BD54D96C481513CD4B /* OverviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0458979F5CEA5B000DD89294 /* OverviewEngine.swift */; };
 		4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
 		4FF1BC1F62C8573D7F9F5BC3 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
 		53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
@@ -28,11 +29,15 @@
 		87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
 		8F73D4E347A605E106782EB1 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
 		9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
+		9F53FF6A4686AD3BDCF4D71C /* PlanOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */; };
 		A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
 		B2D84D9F27D788C65558134D /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12AED3EA735071C908795C /* ReviewView.swift */; };
+		B7B4AE0E4FCD28975931A7F1 /* PlanOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */; };
 		BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
 		C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
 		CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
+		DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */; };
+		E48171DC11A6C5B84B8F4BD1 /* OverviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0458979F5CEA5B000DD89294 /* OverviewEngine.swift */; };
 		E68149D9ED26F617452DADAF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B38CCC4A2D72B94055278 /* SettingsView.swift */; };
 		E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
@@ -50,11 +55,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0458979F5CEA5B000DD89294 /* OverviewEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewEngine.swift; sourceTree = "<group>"; };
+		061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewEngineTests.swift; sourceTree = "<group>"; };
 		0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewEngine.swift; sourceTree = "<group>"; };
 		116AA1865DC2FE2CAFD6F7EC /* ShikenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShikenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		16ADCB0F880F1588FFF52907 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1A55A656AD6D69DEE215743E /* PlannerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngine.swift; sourceTree = "<group>"; };
 		1C3015A0AD48FABD017F3E8D /* PlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerView.swift; sourceTree = "<group>"; };
+		1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanOverviewView.swift; sourceTree = "<group>"; };
 		237BF5EFC78CFE1A0FCC5DCB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenApp.swift; sourceTree = "<group>"; };
 		39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shiken macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +93,7 @@
 		482C6B42C5E8590C7FEFF841 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */,
 				DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */,
 				EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */,
 			);
@@ -106,8 +115,10 @@
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
 				C09996961FCC3572C0289AD6 /* FocusTimer.swift */,
 				A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */,
+				0458979F5CEA5B000DD89294 /* OverviewEngine.swift */,
 				1A55A656AD6D69DEE215743E /* PlannerEngine.swift */,
 				1C3015A0AD48FABD017F3E8D /* PlannerView.swift */,
+				1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */,
 				0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */,
 				FB12AED3EA735071C908795C /* ReviewView.swift */,
 				6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */,
@@ -252,6 +263,8 @@
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
 				87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */,
 				F7FFA5574FB6612FB2E0F33B /* FocusView.swift in Sources */,
+				4D6EB3BD54D96C481513CD4B /* OverviewEngine.swift in Sources */,
+				9F53FF6A4686AD3BDCF4D71C /* PlanOverviewView.swift in Sources */,
 				7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */,
 				C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */,
 				8F73D4E347A605E106782EB1 /* ReviewEngine.swift in Sources */,
@@ -268,6 +281,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */,
 				3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */,
 				83C1A7EDDC77670DDE128987 /* ReviewEngineTests.swift in Sources */,
 			);
@@ -281,6 +295,8 @@
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
 				4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */,
 				1D1D9EE46B2478F18E463892 /* FocusView.swift in Sources */,
+				E48171DC11A6C5B84B8F4BD1 /* OverviewEngine.swift in Sources */,
+				B7B4AE0E4FCD28975931A7F1 /* PlanOverviewView.swift in Sources */,
 				F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */,
 				53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */,
 				4FF1BC1F62C8573D7F9F5BC3 /* ReviewEngine.swift in Sources */,

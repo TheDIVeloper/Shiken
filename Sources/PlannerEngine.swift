@@ -4,10 +4,15 @@ import Foundation
 // Everything the UI does about "what should I study this week" comes from these
 // two functions.
 
-struct TopicPlan: Equatable, Sendable {
+struct TopicPlan: Equatable, Sendable, Identifiable {
     let topicID: UUID
     let title: String
     let weight: Int
+    /// A stand-in row standing in for "this subject as a whole". Never persisted,
+    /// so it has no `Topic` to tick off — the UI must not pretend otherwise.
+    var isSynthetic: Bool = false
+
+    var id: UUID { topicID }
 }
 
 struct ScheduledBlock: Equatable, Sendable {
@@ -30,14 +35,20 @@ enum PlannerEngine {
     /// Builds one `ScheduledBlock` per topic per week, weighted by topic weight.
     /// Weekly minutes = dailyMinutes x 7, split across topics by weight; remainder
     /// goes to the largest fractional leftovers so every week sums exactly.
-    static func schedule(topics: [TopicPlan], examDate: Date, dailyMinutes: Int, from today: Date = .now) -> [ScheduledBlock] {
+    static func schedule(
+        topics: [TopicPlan],
+        examDate: Date,
+        dailyMinutes: Int,
+        from today: Date = .now,
+        calendar: Calendar = .current
+    ) -> [ScheduledBlock] {
         guard !topics.isEmpty else { return [] }
         let weights = topics.map { max(1, $0.weight) }
         let totalWeight = weights.reduce(0, +)
         let weeklyTotal = max(1, dailyMinutes) * 7
 
         var blocks: [ScheduledBlock] = []
-        for week in 0..<weeksBetween(examDate, from: today, calendar: .current) {
+        for week in 0..<weeksBetween(examDate, from: today, calendar: calendar) {
             let exact = weights.map { Double(weeklyTotal) * Double($0) / Double(totalWeight) }
             var minutes = exact.map { Int($0.rounded(.down)) }
             let remainder = weeklyTotal - minutes.reduce(0, +)
@@ -54,6 +65,15 @@ enum PlannerEngine {
             }
         }
         return blocks
+    }
+
+    /// A subject nobody has broken into topics yet still deserves a plan: one
+    /// block standing for the subject as a whole. The stand-in borrows the
+    /// subject's own UUID, so its identity is stable across re-renders without
+    /// persisting anything or hashing a name.
+    static func effectiveTopics(subjectID: UUID, subjectName: String, topics: [TopicPlan]) -> [TopicPlan] {
+        guard topics.isEmpty else { return topics }
+        return [TopicPlan(topicID: subjectID, title: subjectName, weight: 1, isSynthetic: true)]
     }
 
     /// Splits each topic's weekly minutes across `days` (default 7) as evenly as
