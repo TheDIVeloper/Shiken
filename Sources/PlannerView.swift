@@ -225,11 +225,6 @@ struct PlannerView: View {
                         .font(.system(size: DesignSystem.typeBody(), weight: .medium))
                         .italic(plan.isSynthetic)
                         .lineLimit(1)
-                    if plan.isSynthetic {
-                        Text("general")
-                            .font(.system(size: DesignSystem.typeCaption()))
-                            .foregroundStyle(.tertiary)
-                    }
                 }
                 .frame(width: 150, height: metrics.cell, alignment: .leading)
                 .padding(.leading, DesignSystem.spaceM())
@@ -318,6 +313,20 @@ struct PlannerView: View {
         return "Day \(day + 1)"
     }
 
+    private func cellLabel(_ minutes: Int, isDone: Bool) -> some View {
+        let empty = minutes == 0
+        return Text("\(minutes)")
+            .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+            .foregroundStyle(isDone || empty ? Color.secondary : Color.primary)
+            .strikethrough(isDone, color: .secondary)
+            .frame(width: GridMetrics.weekly.column, height: GridMetrics.weekly.cell, alignment: .center)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                    .fill(isDone ? DesignSystem.hexColor(subject.accentHex).opacity(0.14) : Color.clear)
+            )
+            .contentShape(Rectangle())
+    }
+
     private func weekColumn(_ week: Int, weeks: Int) -> some View {
         let width = GridMetrics.weekly.column
 
@@ -329,25 +338,24 @@ struct PlannerView: View {
                 .frame(width: width, height: GridMetrics.weekly.header, alignment: .center)
 
             ForEach(inputs) { plan in
-                if let block = doneMap[PlanKey(topicID: plan.topicID, week: week)],
-                   !plan.isSynthetic,
-                   let minutes = plannedMinutes(plan: plan, week: week) {
+                // Minutes come from the computed plan, so a stand-in topic row
+                // still shows its share of the week. Only ticking needs a
+                // persisted PlanBlock, which a stand-in never has.
+                let minutes = plannedMinutes(plan: plan, week: week) ?? 0
+                let block = doneMap[PlanKey(topicID: plan.topicID, week: week)]
+
+                if let block, !plan.isSynthetic {
                     Button {
                         block.isDone.toggle()
                         try? ctx.save()
                     } label: {
-                        Text("\(minutes)")
-                            .font(.system(size: DesignSystem.typeBody(), weight: .medium))
-                            .foregroundStyle(block.isDone ? Color.secondary : Color.primary)
-                            .strikethrough(block.isDone, color: .secondary)
-                            .frame(width: width, height: GridMetrics.weekly.cell, alignment: .center)
-                            .background(
-                                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                                    .fill(block.isDone ? DesignSystem.hexColor(subject.accentHex).opacity(0.14) : Color.clear)
-                            )
-                            .contentShape(Rectangle())
+                        cellLabel(minutes, isDone: block.isDone)
                     }
                     .buttonStyle(.plain)
+                } else {
+                    cellLabel(minutes, isDone: false)
+                        .allowsHitTesting(false)
+                        .help(plan.isSynthetic ? "No topics yet, so this is the subject as a whole" : "")
                 }
             }
 

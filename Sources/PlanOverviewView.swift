@@ -30,8 +30,22 @@ struct PlanOverviewView: View {
         }
     }
 
+    @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
+
     private var overview: Overview {
-        OverviewEngine.overview(subjects: inputs, days: 7, isDone: doneLookup)
+        OverviewEngine.overview(subjects: inputs, days: 7, isDone: doneLookup, actuals: actualRecords)
+    }
+
+    /// Sessions in the engine's own vocabulary.
+    private var actualRecords: [OverviewEngine.ActualRecord] {
+        sessions.map {
+            OverviewEngine.ActualRecord(
+                subjectID: $0.subject?.id,
+                topicID: $0.topic?.id,
+                focusedMinutes: $0.focusedMinutes,
+                startedAt: $0.startedAt
+            )
+        }
     }
 
     /// Live from SwiftData: a tick in a subject's own plan shows here immediately.
@@ -92,13 +106,35 @@ struct PlanOverviewView: View {
     }
 
     private var todaySubtitle: String {
-        guard let total = overview.today?.totalMinutes, total > 0 else {
-            return "Nothing scheduled today."
-        }
-        let noun = total == 1 ? "minute" : "minutes"
-        let count = overview.today?.subjects.count ?? 0
+        guard let day = overview.today else { return "Nothing scheduled today." }
+        let total = day.totalMinutes
+        guard total > 0 else { return "Nothing scheduled today." }
+        let count = day.subjects.count
         let subjectNoun = count == 1 ? "subject" : "subjects"
-        return "\(total) \(noun) across \(count) \(subjectNoun)."
+        if day.isMet {
+            return "Target met — \(day.actualMinutes)m against \(total)m planned across \(count) \(subjectNoun)."
+        }
+        return "\(day.actualMinutes)m of \(total)m across \(count) \(subjectNoun) · \(day.remainingMinutes)m to go."
+    }
+
+    /// Thin determinate bar. Only ever shown for a day in progress, so it
+    /// reports movement toward a target rather than grading a missed one.
+    private func progressBar(fraction: Int, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            GeometryReader { geo in
+                let clamped = CGFloat(min(100, max(0, fraction))) / 100
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.secondary.opacity(0.18))
+                    Capsule().fill(Color.green).frame(width: geo.size.width * clamped)
+                }
+            }
+            .frame(height: 5)
+
+            Text(detail)
+                .font(.system(size: DesignSystem.typeCaption()))
+                .foregroundStyle(.tertiary)
+                .monospacedDigit()
+        }
     }
 
     private var emptyState: some View {
@@ -131,6 +167,17 @@ struct PlanOverviewView: View {
                     .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
                     .monospacedDigit()
                     .foregroundStyle(accent)
+
+                if planned.isMet {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .help("Target met")
+                }
+            }
+
+            if day.dayIndex == 0 && !planned.isMet && planned.totalMinutes > 0 {
+                progressBar(fraction: planned.completionPercent,
+                            detail: "\(planned.actualMinutes)m of \(planned.totalMinutes)m · \(planned.remainingMinutes)m to go")
             }
 
             VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
@@ -152,6 +199,11 @@ struct PlanOverviewView: View {
                 Text("exam \(planned.examDate.formatted(date: .abbreviated, time: .omitted))")
                     .font(.system(size: DesignSystem.typeCaption()))
                     .foregroundStyle(.tertiary)
+                if day.dayIndex == 0, planned.actualMinutes > 0, !planned.isMet {
+                    Text("\(planned.actualMinutes)m logged today")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.tertiary)
+                }
                 if let done = planned.isDone {
                     Label(done ? "This week done" : "In progress",
                           systemImage: done ? "checkmark.circle.fill" : "circle.lefthalf.filled")
@@ -198,9 +250,17 @@ struct PlanOverviewView: View {
                     .foregroundStyle(.tertiary)
             }
 
-            Text("\(day.totalMinutes)m")
-                .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
-                .monospacedDigit()
+            HStack(spacing: 4) {
+                Text("\(day.totalMinutes)m")
+                    .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
+                    .monospacedDigit()
+                if day.isMet {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.green)
+                        .help("Target met")
+                }
+            }
 
             Divider()
 
@@ -220,7 +280,7 @@ struct PlanOverviewView: View {
                                 .lineLimit(1)
                         }
                         ForEach(planned.entries) { entry in
-                            Text(entry.isSynthetic ? "\(entry.minutes)m general" : "\(entry.minutes)m \(entry.title)")
+                            Text(entry.isSynthetic ? "\(entry.minutes)m" : "\(entry.minutes)m \(entry.title)")
                                 .font(.system(size: DesignSystem.typeCaption()))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)

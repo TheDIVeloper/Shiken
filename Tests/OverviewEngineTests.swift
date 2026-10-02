@@ -203,3 +203,147 @@ final class OverviewEngineTests: XCTestCase {
                           "a stand-in row has no checkbox, so claiming it is done would be a lie")
     }
 }
+// MARK: - Target met
+
+final class OverviewTargetTests: XCTestCase {
+    private var calendar: Calendar { var c = Calendar.current; c.timeZone = .gmt; return c }
+    private func day(_ offset: Int) -> Date {
+        calendar.date(byAdding: .day, value: offset, to: Date())!
+    }
+
+    private func input(
+        name: String = "Chemistry", minutes: Int = 60, examIn: Int = 14
+    ) -> SubjectPlanInput {
+        SubjectPlanInput(
+            id: UUID(), name: name, accentHex: "#A7B99C",
+            examDate: day(examIn), dailyMinutes: minutes, topics: []
+        )
+    }
+
+    private func record(_ subjectID: UUID?, _ minutes: Int, on date: Date) -> OverviewEngine.ActualRecord {
+        .init(subjectID: subjectID, topicID: nil, focusedMinutes: minutes, startedAt: date)
+    }
+
+    func testUnmetTargetIsNotMet() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [record(subject.id, 30, on: Date())]
+        )
+        XCTAssertEqual(overview.today?.totalMinutes, 60)
+        XCTAssertEqual(overview.today?.actualMinutes, 30)
+        XCTAssertFalse(overview.today!.isMet)
+        XCTAssertEqual(overview.today?.remainingMinutes, 30)
+    }
+
+    func testExactlyHittingTheTargetCountsAsMet() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [record(subject.id, 60, on: Date())]
+        )
+        XCTAssertTrue(overview.today!.isMet, "meeting the target exactly is meeting it")
+        XCTAssertEqual(overview.today?.remainingMinutes, 0)
+    }
+
+    func testOvershootingStaysMetAndDoesNotOverflow() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [record(subject.id, 200, on: Date())]
+        )
+        XCTAssertTrue(overview.today!.isMet)
+        XCTAssertEqual(overview.today?.completionPercent, 100, "display clamps at 100")
+        XCTAssertEqual(overview.today?.remainingMinutes, 0)
+    }
+
+    func testMultipleSessionsAccumulate() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [
+                record(subject.id, 25, on: day(0)),
+                record(subject.id, 40, on: day(0))
+            ]
+        )
+        XCTAssertEqual(overview.today?.actualMinutes, 65)
+        XCTAssertTrue(overview.today!.isMet)
+    }
+
+    func testYesterdaysWorkDoesNotCountTowardsToday() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [record(subject.id, 120, on: day(-1))]
+        )
+        XCTAssertEqual(overview.today?.actualMinutes, 0, "yesterday's minutes are not today's")
+        XCTAssertFalse(overview.today!.isMet)
+    }
+
+    func testFutureDaysNeverShowCompletedWork() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [record(subject.id, 60, on: day(3))]
+        )
+        XCTAssertEqual(overview.days[1].actualMinutes, 0)
+        XCTAssertEqual(overview.days[2].actualMinutes, 0)
+        XCTAssertEqual(overview.days[3].actualMinutes, 60, "that session lands on day 3")
+    }
+
+    func testActualMinutesOnlyCountTowardsTheirOwnSubject() {
+        let chemistry = input(name: "Chemistry", minutes: 60)
+        let physics = input(name: "Physics", minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [chemistry, physics], from: Date(), calendar: calendar,
+            actuals: [record(chemistry.id, 60, on: Date())]
+        )
+        let byName = Dictionary(uniqueKeysWithValues: overview.today!.subjects.map { ($0.name, $0) })
+        XCTAssertEqual(byName["Chemistry"]?.actualMinutes, 60)
+        XCTAssertEqual(byName["Physics"]?.actualMinutes, 0)
+        XCTAssertEqual(byName["Chemistry"]?.isMet, true)
+        XCTAssertEqual(byName["Physics"]?.isMet, false)
+    }
+
+    func testDayTotalIsStillTheSumOfPlannedSubjectsNotActuals() {
+        let chemistry = input(name: "Chemistry", minutes: 60)
+        let physics = input(name: "Physics", minutes: 30)
+        let overview = OverviewEngine.overview(
+            subjects: [chemistry, physics], from: Date(), calendar: calendar,
+            actuals: [record(chemistry.id, 45, on: Date())]
+        )
+        XCTAssertEqual(overview.today?.totalMinutes, 90, "planned total is unaffected by logging")
+        XCTAssertEqual(overview.today?.actualMinutes, 45)
+    }
+
+    func testSubjectLevelProgressIsIndependentPerSubject() {
+        let chemistry = input(name: "Chemistry", minutes: 60)
+        let physics = input(name: "Physics", minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [chemistry, physics], from: Date(), calendar: calendar,
+            actuals: [record(chemistry.id, 30, on: Date())]
+        )
+        let byName = Dictionary(uniqueKeysWithValues: overview.today!.subjects.map { ($0.name, $0) })
+        XCTAssertEqual(byName["Chemistry"]?.completionPercent, 50)
+        XCTAssertEqual(byName["Chemistry"]?.remainingMinutes, 30)
+        XCTAssertEqual(byName["Physics"]?.completionPercent, 0)
+    }
+
+    func testStandInRowProgressUsesTheSubjectsOwnLoggedTime() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(
+            subjects: [subject], from: Date(), calendar: calendar,
+            actuals: [record(subject.id, 60, on: Date())]
+        )
+        XCTAssertEqual(overview.today!.subjects[0].entries.first?.isSynthetic, true)
+        XCTAssertTrue(overview.today!.subjects[0].isMet,
+                      "a stand-in topic still has a real target the user can hit")
+    }
+
+    func testNoActualMinutesMeansNoProgressRatherThanAFalseNegative() {
+        let subject = input(minutes: 60)
+        let overview = OverviewEngine.overview(subjects: [subject], from: Date(), calendar: calendar)
+        XCTAssertEqual(overview.today?.completionPercent, 0)
+        XCTAssertFalse(overview.today!.isMet)
+    }
+}

@@ -7,6 +7,8 @@ Native SwiftUI for macOS, iOS, and iPadOS (macOS 15+ / iOS 18+). Local-first [Sw
 ## Features
 
 - **Plan from your exam date** — set a daily study target (15–240 min) and Shiken builds a week-by-week plan back from the exam day, ending on "Exam week".
+- **One Plan for everything** — a sidebar *Plan* view shows today's total and the whole week across every subject at once, with *Today* and *Week* tabs. Each subject keeps its own daily budget; nothing is re-weighted behind your back.
+- **Green tick when you hit the target** — as logged focus time reaches a day's or subject's planned minutes, it turns green with a tick. Partial progress shows a thin bar reading "30m of 60m · 30m to go". Missed days stay silent: the app reports reaching a target, never grades failing to.
 - **Manage subjects from the sidebar** — right-click any subject to rename it or delete it (topics, plans, and sessions go with it).
 - **Priority dials, not fixed splits** — every topic gets an independent 1–100 priority dial. Dials are relative: drag any topic and the whole week re-allocates to exactly your daily target, no fiddly manual arithmetic.
 - **Weekly and Daily views** — flip between the full week grid (tap a cell to mark it done) and the current week expanded day-by-day, with today highlighted.
@@ -20,7 +22,8 @@ Native SwiftUI for macOS, iOS, and iPadOS (macOS 15+ / iOS 18+). Local-first [Sw
 2. **Add topics and weight the mix.** In the subject's Topics panel, rename topics ("Organic Chem", "Equilibria", …). Drag the priority dials to give each topic more or less of the week — the effective % readout and the "≈ 42m/wk" hint update live. The weekly plan builds itself.
 3. **Read the plan.** *Weekly* shows every week from now to the exam (leftmost is "This Week", rightmost "Exam"); each cell is that topic's planned minutes for the week. Tap a cell to cross it off. *Daily* shows the current week one day at a time, today highlighted.
 4. **Do the work.** *Focus* → pick subject + topic, choose 25/50/90 min or type any custom length (1–240 min), Start. If you tab away mid-session, away-time is tracked (or not, per Settings). Finished sessions appear under *Sessions*.
-5. **Review weekly.** *Review* shows the gap: what you planned vs what you actually logged over the last 7 days, plus a grade and a weekly letter. Use **Export** to drop the letter into Obsidian (markdown + frontmatter).
+5. **Check the Plan.** Sidebar → *Plan* for today's total across every subject, or *Week* for the seven-day grid. A subject with no topics yet still appears, planning as a whole. Targets you reach turn green.
+6. **Review weekly.** *Review* shows the gap: what you planned vs what you actually logged over the last 7 days, plus a grade and a weekly letter. Use **Export** to drop the letter into Obsidian (markdown + frontmatter).
 
 ## Build
 
@@ -34,4 +37,4 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Shi
 
 ## Status
 
-MVP complete: subjects/topics + priority-dial planner (weekly + daily), focus timer + session log (incl. custom lengths), planned-vs-actual review + Obsidian export, subject rename/delete, settings, generated app icon — 19 unit tests green across the planner and review engines. Next: physical-device iOS pass, then CloudKit sync once a Developer Account exists.
+Subjects/topics + priority-dial planner (weekly + daily), cross-subject Plan view (Today/Week) with target-met indicators, focus timer + session log (incl. custom lengths), planned-vs-actual review + Obsidian export, subject rename/delete, settings, generated app icon — 46 unit tests green across the planner, overview and review engines. A subject with no topics yet plans as a whole rather than showing an empty grid. Next: physical-device iOS pass, then CloudKit sync once a Developer Account exists.

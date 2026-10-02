@@ -55,6 +55,16 @@ struct PlannedSubject: Equatable, Sendable, Identifiable {
     /// Minutes for the whole current week, for the weekly ✓ aggregate.
     let weekMinutes: Int
     let isDone: Bool?
+    /// Minutes actually logged against this subject on this day.
+    let actualMinutes: Int
+
+    /// This subject's own target for this day is met.
+    var isMet: Bool { totalMinutes > 0 && actualMinutes >= totalMinutes }
+    var remainingMinutes: Int { max(0, totalMinutes - actualMinutes) }
+    var completionPercent: Int {
+        guard totalMinutes > 0 else { return 0 }
+        return min(100, Int((Double(actualMinutes) / Double(totalMinutes) * 100).rounded()))
+    }
 }
 
 struct OverviewDay: Equatable, Sendable, Identifiable {
@@ -63,6 +73,19 @@ struct OverviewDay: Equatable, Sendable, Identifiable {
     let date: Date
     let subjects: [PlannedSubject]
     let totalMinutes: Int
+
+    /// Focused minutes actually logged on this day across every subject.
+    /// Zero for future days — you cannot have done tomorrow yet.
+    let actualMinutes: Int
+
+    /// The target is met. Reaching it is the point, so this is the one place
+    /// the app celebrates; it never nags about the days you missed.
+    var isMet: Bool { totalMinutes > 0 && actualMinutes >= totalMinutes }
+    var completionPercent: Int {
+        guard totalMinutes > 0 else { return 0 }
+        return min(100, Int((Double(actualMinutes) / Double(totalMinutes) * 100).rounded()))
+    }
+    var remainingMinutes: Int { max(0, totalMinutes - actualMinutes) }
 }
 
 struct Overview: Equatable, Sendable {
@@ -77,12 +100,22 @@ struct Overview: Equatable, Sendable {
 }
 
 enum OverviewEngine {
+    /// One focused session, mapped into the engine by the view. Keeps the engine
+    /// free of SwiftData while still letting it answer "did I hit today's target".
+    struct ActualRecord: Equatable, Sendable {
+        let subjectID: UUID?
+        let topicID: UUID?
+        let focusedMinutes: Int
+        let startedAt: Date
+    }
+
     static func overview(
         subjects: [SubjectPlanInput],
         days: Int = 7,
         from today: Date = .now,
         calendar: Calendar = .current,
-        isDone: (UUID, Int) -> Bool? = { _, _ in nil }
+        isDone: (UUID, Int) -> Bool? = { _, _ in nil },
+        actuals: [ActualRecord] = []
     ) -> Overview {
         let clampedDays = max(1, min(7, days))
 
@@ -99,16 +132,22 @@ enum OverviewEngine {
         let byDay: [[PlannedSubject]] = dayDates.indices.map { dayIndex in
             planned.compactMap { subject in
                 subjectSlice(subject, dayIndex: dayIndex, today: today, calendar: calendar,
-                             totalDays: clampedDays, isDone: isDone)
+                             totalDays: clampedDays, isDone: isDone, actuals: actuals)
             }
         }
 
         let overviewDays = dayDates.indices.map { index in
-            OverviewDay(
+            let dayStart = calendar.startOfDay(for: dayDates[index])
+            let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+            let loggedToday = actuals
+                .filter { $0.startedAt >= dayStart && $0.startedAt < dayEnd }
+                .reduce(0) { $0 + $1.focusedMinutes }
+            return OverviewDay(
                 dayIndex: index,
                 date: dayDates[index],
                 subjects: byDay[index],
-                totalMinutes: byDay[index].reduce(0) { $0 + $1.totalMinutes }
+                totalMinutes: byDay[index].reduce(0) { $0 + $1.totalMinutes },
+                actualMinutes: loggedToday
             )
         }
 
@@ -133,7 +172,8 @@ enum OverviewEngine {
         today: Date,
         calendar: Calendar,
         totalDays: Int,
-        isDone: (UUID, Int) -> Bool?
+        isDone: (UUID, Int) -> Bool?,
+        actuals: [ActualRecord]
     ) -> PlannedSubject? {
         guard let exam = subject.examDate else { return nil }
 
@@ -187,6 +227,20 @@ enum OverviewEngine {
             nil
         }
 
+        let dayStart = calendar.startOfDay(for: today)
+        let dayOffset = dayIndex
+        guard let dayDate = calendar.date(byAdding: .day, value: dayOffset, to: dayStart) else {
+            return nil
+        }
+        let windowEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+        let actualMinutes = actuals
+            .filter {
+                $0.subjectID == subject.id
+                    && $0.startedAt >= dayDate
+                    && $0.startedAt < windowEnd
+            }
+            .reduce(0) { $0 + $1.focusedMinutes }
+
         return PlannedSubject(
             subjectID: subject.id,
             name: subject.name,
@@ -195,7 +249,8 @@ enum OverviewEngine {
             totalMinutes: entries.reduce(0) { $0 + $1.minutes },
             entries: entries,
             weekMinutes: weekMinutes,
-            isDone: isDone
+            isDone: isDone,
+            actualMinutes: actualMinutes
         )
     }
 }
