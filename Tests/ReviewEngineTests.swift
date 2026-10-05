@@ -9,12 +9,12 @@ final class ReviewEngineTests: XCTestCase {
 
     func testCurrentWeekIndexExamSoonIsZero() {
         let now = Date()
-        XCTAssertEqual(ReviewEngine.currentWeekIndex(examDate: day(6, from: now), now: now, calendar: calendar), 0)
+        XCTAssertEqual(ReviewEngine.currentWeekIndex(driver: day(6, from: now), now: now, calendar: calendar), 0)
     }
 
     func testCurrentWeekIndexTwoWeeksOut() {
         let now = Date()
-        XCTAssertEqual(ReviewEngine.currentWeekIndex(examDate: day(13, from: now), now: now, calendar: calendar), 1)
+        XCTAssertEqual(ReviewEngine.currentWeekIndex(driver: day(13, from: now), now: now, calendar: calendar), 1)
     }
 
     func testSessionsInWindowFiltersBySubjectAndDate() {
@@ -41,9 +41,9 @@ final class ReviewEngineTests: XCTestCase {
             TopicPlan(topicID: b, title: "Thermo", weight: 1)
         ]
         let plan = [
-            ScheduledBlock(weekIndex: 1, topicID: a, minutes: 140),
-            ScheduledBlock(weekIndex: 1, topicID: b, minutes: 140),
-            ScheduledBlock(weekIndex: 0, topicID: a, minutes: 140)
+            ScheduledBlock(weekIndex: 1, topicID: a, minutes: 140, weekStart: day(-7, from: now)),
+            ScheduledBlock(weekIndex: 1, topicID: b, minutes: 140, weekStart: day(-7, from: now)),
+            ScheduledBlock(weekIndex: 0, topicID: a, minutes: 140, weekStart: day(0, from: now))
         ]
         let sessions = [
             SessionRecord(subjectID: subject, topicID: a, focusedMinutes: 90, startedAt: day(-1, from: now)),
@@ -52,7 +52,7 @@ final class ReviewEngineTests: XCTestCase {
         ]
         let review = ReviewEngine.review(
             subjectID: subject, name: "Chemistry", accentHex: "9A8C98",
-            topics: topics, plan: plan, sessions: sessions, examDate: exam, now: now, calendar: calendar
+            topics: topics, plan: plan, sessions: sessions, driver: exam, now: now, calendar: calendar
         )
         XCTAssertEqual(review.plannedMinutes, 280)
         XCTAssertEqual(review.actualMinutes, 210) // 90 + 120; the 9-day-old one is outside the window

@@ -11,8 +11,10 @@ import SwiftData
 final class Subject {
     var id: UUID = UUID()
     var name: String = ""
-    var examDate: Date?
     var accentHex: String = "9A8C98"
+    /// The subject's whole daily budget. Deliberately NOT divided between
+    /// assessments: the user sets one daily figure and keeps to it across every
+    /// assessment in the subject. Assessments are deadlines the plan points at.
     var dailyMinutes: Int = 60
     var position: Int = 0
     var createdAt: Date = Date.now
@@ -20,11 +22,35 @@ final class Subject {
     @Relationship(deleteRule: .cascade, inverse: \Topic.subject)
     var topics: [Topic] = []
 
-    init(name: String, examDate: Date? = nil, accentHex: String = "9A8C98", dailyMinutes: Int = 60, position: Int = 0) {
+    @Relationship(deleteRule: .cascade, inverse: \Assessment.subject)
+    var assessments: [Assessment] = []
+
+    init(name: String, accentHex: String = "9A8C98", dailyMinutes: Int = 60, position: Int = 0) {
         self.name = name
-        self.examDate = examDate
         self.accentHex = accentHex
         self.dailyMinutes = dailyMinutes
+        self.position = position
+    }
+
+    var sortedAssessments: [Assessment] {
+        assessments.sorted { $0.position < $1.position }
+    }
+}
+
+/// One dated thing you're revising for: an SAC, a trial paper, a practical, the
+/// exam itself. A subject has several, because school does not give you one shot.
+@Model
+final class Assessment {
+    var id: UUID = UUID()
+    var title: String = "Assessment"
+    var date: Date = Date.now
+    var position: Int = 0
+
+    var subject: Subject?
+
+    init(title: String = "Assessment", date: Date = .now, position: Int = 0) {
+        self.title = title
+        self.date = date
         self.position = position
     }
 }
@@ -58,14 +84,22 @@ final class Topic {
 final class PlanBlock {
     var id: UUID = UUID()
     var weekIndex: Int = 0
+    /// The Monday (or start of week) this block covers. This — not `weekIndex` —
+    /// is the block's identity, because weekIndex 0 means "the week of whatever
+    /// assessment is driving the plan" and that moves when an earlier assessment
+    /// passes. Keying on the date means a tick stays on the calendar week the user
+    /// ticked instead of silently jumping to a different week.
+    var weekStart: Date = Date.now
     var targetMinutes: Int = 0
     var isDone: Bool = false
 
     var topic: Topic?
 
-    init(weekIndex: Int, targetMinutes: Int, topic: Topic? = nil) {
+    init(weekIndex: Int = 0, weekStart: Date = .now, targetMinutes: Int = 0, isDone: Bool = false, topic: Topic? = nil) {
         self.weekIndex = weekIndex
+        self.weekStart = weekStart
         self.targetMinutes = targetMinutes
+        self.isDone = isDone
         self.topic = topic
     }
 }

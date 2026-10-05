@@ -13,13 +13,15 @@ final class OverviewEngineTests: XCTestCase {
         dailyMinutes: Int = 60,
         topics: [TopicPlan] = []
     ) -> SubjectPlanInput {
+        // A nil examInDays models a subject with no assessment dated at all,
+        // which is what "not planned" means now.
         SubjectPlanInput(
             id: UUID(),
             name: name,
             accentHex: "#A7B99C",
-            examDate: examInDays.map { day($0) },
             dailyMinutes: dailyMinutes,
-            topics: topics
+            topics: topics,
+            assessments: examInDays.map { [AssessmentRef(title: "Exam", date: day($0))] } ?? []
         )
     }
 
@@ -57,7 +59,7 @@ final class OverviewEngineTests: XCTestCase {
             topics: PlannerEngine.effectiveTopics(
                 subjectID: UUID(), subjectName: "Chemistry", topics: []
             ),
-            examDate: day(14), dailyMinutes: 60, from: Date(), calendar: calendar
+            driver: day(14), dailyMinutes: 60, from: Date(), calendar: calendar
         )
         XCTAssertFalse(blocks.isEmpty, "a subject with no topics must still get a week plan")
         // Each week must total the daily budget x 7, on its own.
@@ -216,7 +218,8 @@ final class OverviewTargetTests: XCTestCase {
     ) -> SubjectPlanInput {
         SubjectPlanInput(
             id: UUID(), name: name, accentHex: "#A7B99C",
-            examDate: day(examIn), dailyMinutes: minutes, topics: []
+            dailyMinutes: minutes, topics: [],
+            assessments: [AssessmentRef(title: "Exam", date: day(examIn))]
         )
     }
 
@@ -345,5 +348,183 @@ final class OverviewTargetTests: XCTestCase {
         let overview = OverviewEngine.overview(subjects: [subject], from: Date(), calendar: calendar)
         XCTAssertEqual(overview.today?.completionPercent, 0)
         XCTAssertFalse(overview.today!.isMet)
+    }
+}
+
+// MARK: - Multiple assessments
+
+final class OverviewAssessmentTests: XCTestCase {
+    private var calendar: Calendar { var c = Calendar.current; c.timeZone = .gmt; return c }
+    private func day(_ offset: Int) -> Date {
+        calendar.date(byAdding: .day, value: offset, to: Date())!
+    }
+
+    private func make(
+        _ name: String,
+        assessments: [AssessmentRef],
+        minutes: Int = 60,
+        topics: [TopicPlan] = []
+    ) -> SubjectPlanInput {
+        SubjectPlanInput(
+            id: UUID(), name: name, accentHex: "#A7B99C",
+            dailyMinutes: minutes, topics: topics, assessments: assessments
+        )
+    }
+
+    func testTheSoonestAssessmentIsTheOneNamed() {
+        let overview = OverviewEngine.overview(
+            subjects: [make("Chemistry", assessments: [
+                AssessmentRef(title: "Exam", date: day(60)),
+                AssessmentRef(title: "SAC 1", date: day(5))
+            ])],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.today?.subjects.first?.driver.title, "SAC 1")
+    }
+
+    func testLaterAssessmentsAreCarriedAsUpcomingNotIgnored() {
+        let overview = OverviewEngine.overview(
+            subjects: [make("Chemistry", assessments: [
+                AssessmentRef(title: "SAC 1", date: day(5)),
+                AssessmentRef(title: "Trial", date: day(30)),
+                AssessmentRef(title: "Exam", date: day(60))
+            ])],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.today?.subjects.first?.upcoming.map(\.title), ["Trial", "Exam"])
+    }
+
+    func testSubjectWithNoAssessmentsIsExcludedNotFinished() {
+        let overview = OverviewEngine.overview(
+            subjects: [make("Chemistry", assessments: [])],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.excluded, ["Chemistry"])
+        XCTAssertTrue(overview.finished.isEmpty, "nothing set up is not the same as everything done")
+        XCTAssertEqual(overview.today?.totalMinutes, 0)
+    }
+
+    func testFinishedSubjectIsReportedSeparatelyFromUnplanned() {
+        let overview = OverviewEngine.overview(
+            subjects: [
+                make("Finished", assessments: [AssessmentRef(title: "Exam", date: day(-3))]),
+                make("NotStarted", assessments: [])
+            ],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.finished, ["Finished"])
+        XCTAssertEqual(overview.excluded, ["NotStarted"])
+        XCTAssertEqual(overview.today?.totalMinutes, 0, "a finished subject contributes no minutes")
+    }
+
+    func testFinishedSubjectLeavesThePlan() {
+        let overview = OverviewEngine.overview(
+            subjects: [
+                make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(20))]),
+                make("Methods", assessments: [AssessmentRef(title: "Exam", date: day(-1))])
+            ],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.today?.subjects.map(\.name), ["Chemistry"])
+    }
+
+    func testAPassedAssessmentStopsDrivingWithoutLosingTheSubject() {
+        let overview = OverviewEngine.overview(
+            subjects: [make("Chemistry", assessments: [
+                AssessmentRef(title: "SAC 1", date: day(-1)),
+                AssessmentRef(title: "Exam", date: day(40))
+            ])],
+            from: Date(), calendar: calendar
+        )
+        let planned = overview.today?.subjects.first
+        XCTAssertEqual(planned?.driver.title, "Exam", "the SAC passed, so the exam takes over")
+        XCTAssertTrue(planned!.totalMinutes > 0, "the subject is still revised for")
+        XCTAssertTrue(overview.finished.isEmpty)
+    }
+
+    func testAddingMoreAssessmentsDoesNotChangeTodaysMinutes() {
+        let base = OverviewEngine.overview(
+            subjects: [make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(30))])],
+            from: Date(), calendar: calendar
+        )
+        let many = OverviewEngine.overview(
+            subjects: [make("Chemistry", assessments: [
+                AssessmentRef(title: "SAC 1", date: day(30)),
+                AssessmentRef(title: "SAC 2", date: day(45)),
+                AssessmentRef(title: "Exam", date: day(60))
+            ])],
+            from: Date(), calendar: calendar
+        )
+        // The driver moved earlier in both cases (30 days out either way), and the
+        // subject's daily budget is untouched by how many deadlines follow it.
+        XCTAssertEqual(base.today?.totalMinutes, many.today?.totalMinutes)
+    }
+
+    func testSubjectTotalsStayIndependentAcrossSubjectsWithDifferentDrivers() {
+        func total(hours: Int) -> Int? {
+            OverviewEngine.overview(
+                subjects: [
+                    make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(3))], minutes: 60),
+                    make("Physics", assessments: [AssessmentRef(title: "Exam", date: day(40))], minutes: 30 * hours)
+                ],
+                from: Date(), calendar: calendar
+            ).today?.totalMinutes
+        }
+
+        // Doubling one subject's budget doubles only that subject's share. If the
+        // aggregate re-weighted anything, the other figure would move too.
+        let once = total(hours: 1)!
+        let doubled = total(hours: 2)!
+        XCTAssertEqual(doubled - once, 30, "Physics gains exactly its own extra 30m/day")
+    }
+
+    func testANearAssessmentDoesNotInflateTheDailyFigure() {
+        // A driver three days out caps how many days are planned, but it must not
+        // change how heavy each of those days is. The user set 60m/day, so it stays
+        // 60m/day however near the assessment is.
+        let overview = OverviewEngine.overview(
+            subjects: [
+                make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(3))], minutes: 60),
+                make("Physics", assessments: [AssessmentRef(title: "Exam", date: day(40))], minutes: 30)
+            ],
+            from: Date(), calendar: calendar
+        )
+        let chem = overview.today?.subjects.first { $0.name == "Chemistry" }
+        let phys = overview.today?.subjects.first { $0.name == "Physics" }
+        XCTAssertEqual(phys?.totalMinutes, 30)
+        XCTAssertEqual(chem?.totalMinutes, 60, "the configured daily figure, not 105m")
+    }
+
+    func testADeadlineCapsPlannedDaysWithoutChangingDailyMinutes() {
+        // An assessment tomorrow leaves only today and tomorrow to plan, and both
+        // show the same per-day figure.
+        let overview = OverviewEngine.overview(
+            subjects: [
+                make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(1))], minutes: 60)
+            ],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.days.map(\.totalMinutes), [60, 60, 0, 0, 0, 0, 0],
+                     "two planned days at the same figure, then nothing past the deadline")
+
+        let allPast = OverviewEngine.overview(
+            subjects: [
+                make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(-1))], minutes: 60)
+            ],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(allPast.today?.subjects, [], "nothing is planned past the deadline")
+    }
+
+    func testDatelessSubjectListAppearsWhenOneSubjectHasNoAssessments() {
+        let overview = OverviewEngine.overview(
+            subjects: [
+                make("Chemistry", assessments: [AssessmentRef(title: "Exam", date: day(10))]),
+                make("Art", assessments: [])
+            ],
+            from: Date(), calendar: calendar
+        )
+        XCTAssertEqual(overview.excluded, ["Art"])
+        XCTAssertEqual(overview.today?.subjects.map(\.name), ["Chemistry"])
     }
 }

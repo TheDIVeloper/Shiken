@@ -19,15 +19,18 @@
 		4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
 		4FF1BC1F62C8573D7F9F5BC3 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
 		53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
+		55780889CC6D0CC3C586B930 /* Subject+Planning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB36DD482A967056167107B /* Subject+Planning.swift */; };
 		57D9E3C3274BDAD9B9D8C319 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B38CCC4A2D72B94055278 /* SettingsView.swift */; };
 		5B5A59592B5491090B965345 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12AED3EA735071C908795C /* ReviewView.swift */; };
 		5DB6D3B024B90B5D6643E0B6 /* SessionLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */; };
 		67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
 		6F0CCE3C33744495717645BD /* SessionLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */; };
+		7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */; };
 		7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
 		83C1A7EDDC77670DDE128987 /* ReviewEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */; };
 		87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
 		8F73D4E347A605E106782EB1 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
+		9006C0D09F41F7CC8EE76AE9 /* Subject+Planning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB36DD482A967056167107B /* Subject+Planning.swift */; };
 		9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
 		9F53FF6A4686AD3BDCF4D71C /* PlanOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */; };
 		A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
@@ -65,10 +68,12 @@
 		1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanOverviewView.swift; sourceTree = "<group>"; };
 		237BF5EFC78CFE1A0FCC5DCB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenApp.swift; sourceTree = "<group>"; };
+		27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssessmentSyncTests.swift; sourceTree = "<group>"; };
 		39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shiken macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D4B38CCC4A2D72B94055278 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectsView.swift; sourceTree = "<group>"; };
 		6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLogView.swift; sourceTree = "<group>"; };
+		8BB36DD482A967056167107B /* Subject+Planning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Subject+Planning.swift"; sourceTree = "<group>"; };
 		A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
 		AACF642EDBDE1FC60837DF0C /* Shiken iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Shiken iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2BA4EE1925DE1220042705B /* ShikenModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenModels.swift; sourceTree = "<group>"; };
@@ -93,6 +98,7 @@
 		482C6B42C5E8590C7FEFF841 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */,
 				061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */,
 				DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */,
 				EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */,
@@ -125,6 +131,7 @@
 				3D4B38CCC4A2D72B94055278 /* SettingsView.swift */,
 				25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */,
 				B2BA4EE1925DE1220042705B /* ShikenModels.swift */,
+				8BB36DD482A967056167107B /* Subject+Planning.swift */,
 				4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */,
 			);
 			path = Sources;
@@ -273,6 +280,7 @@
 				57D9E3C3274BDAD9B9D8C319 /* SettingsView.swift in Sources */,
 				19F7481E04979BE345D80DF2 /* ShikenApp.swift in Sources */,
 				22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */,
+				55780889CC6D0CC3C586B930 /* Subject+Planning.swift in Sources */,
 				9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -281,6 +289,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */,
 				DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */,
 				3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */,
 				83C1A7EDDC77670DDE128987 /* ReviewEngineTests.swift in Sources */,
@@ -305,6 +314,7 @@
 				E68149D9ED26F617452DADAF /* SettingsView.swift in Sources */,
 				BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */,
 				67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */,
+				9006C0D09F41F7CC8EE76AE9 /* Subject+Planning.swift in Sources */,
 				A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -438,7 +448,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -458,7 +468,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -525,7 +535,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -539,7 +549,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

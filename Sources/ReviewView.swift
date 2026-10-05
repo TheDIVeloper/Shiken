@@ -18,11 +18,13 @@ struct ReviewView: View {
 
     private var reviews: [SubjectReview] {
         subjects.compactMap { subject in
-            guard let exam = subject.examDate else { return nil }
-            let topics = subject.topics
-                .sorted { $0.position < $1.position }
-                .map { TopicPlan(topicID: $0.id, title: $0.title, weight: max(1, $0.weight)) }
-            let plan = PlannerEngine.schedule(topics: topics, examDate: exam, dailyMinutes: subject.dailyMinutes)
+            // A finished subject has nothing left to revise for, so there is no
+            // plan to hold it to. Its sessions still appear in the log.
+            guard let next = subject.nextAssessment else { return nil }
+            let topics = PlannerEngine.effectiveTopics(
+                subjectID: subject.id, subjectName: subject.name, topics: subject.topicPlans
+            )
+            let plan = PlannerEngine.schedule(topics: topics, driver: next.date, dailyMinutes: subject.dailyMinutes)
             return ReviewEngine.review(
                 subjectID: subject.id,
                 name: subject.name,
@@ -30,7 +32,7 @@ struct ReviewView: View {
                 topics: topics,
                 plan: plan,
                 sessions: records,
-                examDate: exam
+                driver: next.date
             )
         }
     }
@@ -43,13 +45,10 @@ struct ReviewView: View {
                 header
 
                 if reviews.isEmpty {
-                    ContentUnavailableView(
-                        "Nothing to review",
-                        systemImage: "chart.bar.xaxis",
-                        description: Text("Add a subject with an exam date to see planned vs actual.")
+                    quietEmptyState(
+                        "Nothing to review yet.",
+                        "Give a subject an assessment and this compares your plan against what you actually logged."
                     )
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, DesignSystem.spaceXXL())
                 } else {
                     ForEach(reviews, id: \.subjectID) { review in
                         SubjectReviewCard(review: review)
@@ -60,6 +59,26 @@ struct ReviewView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Review")
+    }
+
+    /// Empty states use the same type scale and muted tone as the rest of the
+    /// app instead of a large system glyph and display text, so a blank screen
+    /// still looks like Shiken.
+    private func quietEmptyState(_ title: String, _ detail: String) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+            Text(title)
+                .font(.system(size: DesignSystem.typeTitle(), weight: .semibold))
+            Text(detail)
+                .font(.system(size: DesignSystem.typeBody()))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DesignSystem.spaceL())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                .fill(DesignSystem.panelFill())
+        )
+        .padding(.top, DesignSystem.spaceL())
     }
 
     private var header: some View {

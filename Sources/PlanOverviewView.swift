@@ -16,18 +16,7 @@ struct PlanOverviewView: View {
     @State private var scale: Scale = .today
 
     private var inputs: [SubjectPlanInput] {
-        subjects.map { subject in
-            SubjectPlanInput(
-                id: subject.id,
-                name: subject.name,
-                accentHex: subject.accentHex,
-                examDate: subject.examDate,
-                dailyMinutes: subject.dailyMinutes,
-                topics: subject.topics
-                    .sorted { $0.position < $1.position }
-                    .map { TopicPlan(topicID: $0.id, title: $0.title, weight: max(1, $0.weight)) }
-            )
-        }
+        subjects.map(\.planInput)
     }
 
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
@@ -49,14 +38,21 @@ struct PlanOverviewView: View {
     }
 
     /// Live from SwiftData: a tick in a subject's own plan shows here immediately.
-    private func doneLookup(topicID: UUID, weekIndex: Int) -> Bool? {
+    /// Matched on the calendar week rather than the ladder position, so it agrees
+    /// with what the subject's own grid is showing.
+    private func doneLookup(topicID: UUID, weekStart: Date) -> Bool? {
         for subject in subjects {
             for topic in subject.topics where topic.id == topicID {
-                guard let block = topic.planBlocks.first(where: { $0.weekIndex == weekIndex }) else { return nil }
+                guard let block = topic.planBlocks.first(where: { sameWeek($0.weekStart, weekStart) })
+                else { return nil }
                 return block.isDone
             }
         }
         return nil
+    }
+
+    private func sameWeek(_ lhs: Date, _ rhs: Date) -> Bool {
+        Calendar.current.isDate(lhs, equalTo: rhs, toGranularity: .weekOfYear)
     }
 
     var body: some View {
@@ -96,11 +92,19 @@ struct PlanOverviewView: View {
                 .foregroundStyle(.secondary)
             if !overview.excluded.isEmpty {
                 Label(
-                    "Not planned — no exam date: \(overview.excluded.joined(separator: ", "))",
+                    "Not planned — no assessment dated: \(overview.excluded.joined(separator: ", "))",
                     systemImage: "exclamationmark.triangle"
                 )
                 .font(.system(size: DesignSystem.typeCaption()))
                 .foregroundStyle(.secondary)
+            }
+            if !overview.finished.isEmpty {
+                Label(
+                    "Finished, history kept: \(overview.finished.joined(separator: ", "))",
+                    systemImage: "checkmark.circle"
+                )
+                .font(.system(size: DesignSystem.typeCaption()))
+                .foregroundStyle(.tertiary)
             }
         }
     }
@@ -138,7 +142,7 @@ struct PlanOverviewView: View {
     }
 
     private var emptyState: some View {
-        Text("Add a subject with an exam date and this fills in.")
+        Text("Add a subject and give it an assessment to revise for — this fills in.")
             .font(.system(size: DesignSystem.typeBody()))
             .foregroundStyle(.secondary)
     }
@@ -196,9 +200,15 @@ struct PlanOverviewView: View {
             }
 
             HStack(spacing: DesignSystem.spaceM()) {
-                Text("exam \(planned.examDate.formatted(date: .abbreviated, time: .omitted))")
+                Text("\(planned.driver.title) \(planned.driver.date.formatted(date: .abbreviated, time: .omitted))")
                     .font(.system(size: DesignSystem.typeCaption()))
                     .foregroundStyle(.tertiary)
+                if let next = planned.upcoming.first {
+                    Text("then \(next.title) \(next.date.formatted(date: .abbreviated, time: .omitted))")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.tertiary)
+                        .help("Planned after \(planned.driver.title) — not shaping the plan yet")
+                }
                 if day.dayIndex == 0, planned.actualMinutes > 0, !planned.isMet {
                     Text("\(planned.actualMinutes)m logged today")
                         .font(.system(size: DesignSystem.typeCaption()))

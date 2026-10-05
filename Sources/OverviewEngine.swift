@@ -14,24 +14,26 @@ struct SubjectPlanInput: Equatable, Sendable {
     let id: UUID
     let name: String
     let accentHex: String
-    let examDate: Date?
     let dailyMinutes: Int
     let topics: [TopicPlan]
+    /// Every dated thing this subject is revised for. The plan is driven by the
+    /// next one still ahead; the rest show up as markers only.
+    let assessments: [AssessmentRef]
 
     init(
         id: UUID,
         name: String,
         accentHex: String,
-        examDate: Date?,
         dailyMinutes: Int,
-        topics: [TopicPlan]
+        topics: [TopicPlan],
+        assessments: [AssessmentRef]
     ) {
         self.id = id
         self.name = name
         self.accentHex = accentHex
-        self.examDate = examDate
         self.dailyMinutes = dailyMinutes
         self.topics = topics
+        self.assessments = assessments
     }
 }
 
@@ -48,7 +50,10 @@ struct PlannedSubject: Equatable, Sendable, Identifiable {
     let subjectID: UUID
     let name: String
     let accentHex: String
-    let examDate: Date
+    /// The assessment this subject's plan is currently built around.
+    let driver: AssessmentRef
+    /// Anything after the driver. Markers only: these do not reshape the plan.
+    let upcoming: [AssessmentRef]
     let totalMinutes: Int
     /// One row per planned topic. `minutes` is whatever this day/week column holds.
     let entries: [PlannedEntry]
@@ -90,10 +95,13 @@ struct OverviewDay: Equatable, Sendable, Identifiable {
 
 struct Overview: Equatable, Sendable {
     let days: [OverviewDay]
-    /// Subjects left out because they have no exam date, so no plan exists.
-    /// Surfaced rather than silently dropped — an under-reported total that
+    /// Subjects with no assessment dated today or later, so no plan exists for
+    /// them. Surfaced rather than silently dropped — an under-reported total that
     /// looks complete is worse than an obviously incomplete one.
     let excluded: [String]
+    /// Subjects whose assessments have all passed. These leave the Plan entirely
+    /// but keep their sidebar row and their history.
+    let finished: [String]
 
     var today: OverviewDay? { days.first }
     var weekTotalMinutes: Int { days.reduce(0) { $0 + $1.totalMinutes } }
@@ -114,24 +122,31 @@ enum OverviewEngine {
         days: Int = 7,
         from today: Date = .now,
         calendar: Calendar = .current,
-        isDone: (UUID, Int) -> Bool? = { _, _ in nil },
+        isDone: (UUID, Date) -> Bool? = { _, _ in nil },
         actuals: [ActualRecord] = []
     ) -> Overview {
         let clampedDays = max(1, min(7, days))
 
-        let planned = subjects.compactMap { subject -> SubjectPlanInput? in
-            guard subject.examDate != nil else { return nil }
-            return subject
+        // A subject joins the plan only if it has an assessment still ahead of
+        // it. Two ways to miss out, and the view reports them differently:
+        // nothing set up at all, versus everything already sat.
+        let live = subjects.compactMap { subject -> (SubjectPlanInput, AssessmentRef)? in
+            guard let next = PlannerEngine.nextAssessment(subject.assessments, now: today, calendar: calendar)
+            else { return nil }
+            return (subject, next)
         }
-        let excluded = subjects.filter { $0.examDate == nil }.map(\.name)
+        let liveIDs = Set(live.map { $0.0.id })
+        let offPlan = subjects.filter { !liveIDs.contains($0.id) }
+        let excluded = offPlan.filter { $0.assessments.isEmpty }.map(\.name)
+        let finished = offPlan.filter { !$0.assessments.isEmpty }.map(\.name)
 
         let dayDates = (0..<clampedDays).compactMap {
             calendar.date(byAdding: .day, value: $0, to: today)
         }
 
         let byDay: [[PlannedSubject]] = dayDates.indices.map { dayIndex in
-            planned.compactMap { subject in
-                subjectSlice(subject, dayIndex: dayIndex, today: today, calendar: calendar,
+            live.compactMap { entry in
+                subjectSlice(entry.0, driver: entry.1, dayIndex: dayIndex, today: today, calendar: calendar,
                              totalDays: clampedDays, isDone: isDone, actuals: actuals)
             }
         }
@@ -151,53 +166,54 @@ enum OverviewEngine {
             )
         }
 
-        return Overview(days: overviewDays, excluded: excluded)
+        return Overview(days: overviewDays, excluded: excluded, finished: finished)
     }
 
-    /// Days this subject can still be revised on, counting today: its own exam
-    /// date caps the week, so we never plan revision for a past exam.
-    static func remainingDays(subject: SubjectPlanInput, today: Date, calendar: Calendar) -> Int {
-        guard let exam = subject.examDate else { return 0 }
+    /// Days this subject can still be revised on, counting today. The assessment
+    /// driving the plan caps the week, so we never plan revision past it.
+    static func remainingDays(
+        driver: AssessmentRef, today: Date, calendar: Calendar
+    ) -> Int {
         let days = calendar.dateComponents(
             [.day],
             from: calendar.startOfDay(for: today),
-            to: calendar.startOfDay(for: exam)
+            to: calendar.startOfDay(for: driver.date)
         ).day ?? 0
         return max(1, min(7, days + 1))
     }
 
     private static func subjectSlice(
         _ subject: SubjectPlanInput,
+        driver: AssessmentRef,
         dayIndex: Int,
         today: Date,
         calendar: Calendar,
         totalDays: Int,
-        isDone: (UUID, Int) -> Bool?,
+        isDone: (UUID, Date) -> Bool?,
         actuals: [ActualRecord]
     ) -> PlannedSubject? {
-        guard let exam = subject.examDate else { return nil }
-
         let topics = PlannerEngine.effectiveTopics(
             subjectID: subject.id, subjectName: subject.name, topics: subject.topics
         )
         guard !topics.isEmpty else { return nil }
 
-        let weekIndex = PlannerEngine.weeksBetween(exam, from: today, calendar: calendar) - 1
+        let weekIndex = PlannerEngine.weeksBetween(driver.date, from: today, calendar: calendar) - 1
         let blocks = PlannerEngine.schedule(
-            topics: topics, examDate: exam, dailyMinutes: subject.dailyMinutes,
+            topics: topics, driver: driver.date, dailyMinutes: subject.dailyMinutes,
             from: today, calendar: calendar
         )
         let weekly = blocks.filter { $0.weekIndex == weekIndex }
         guard !weekly.isEmpty else { return nil }
 
-        let available = min(remainingDays(subject: subject, today: today, calendar: calendar), totalDays)
-        let spread = PlannerEngine.dailyBreakdown(
-            weeklyMinutes: weekly.map(\.minutes), days: max(1, available)
-        )
+        let available = min(remainingDays(driver: driver, today: today, calendar: calendar), totalDays)
+        // Split the daily target rather than dividing the week's total, so the
+        // figure the user set is the figure every day shows, however near the
+        // assessment is. Beyond the deadline there is simply nothing planned.
+        let dailySplit = PlannerEngine.dailyTopicSplit(topics: topics, dailyMinutes: subject.dailyMinutes)
 
         let entries = topics.indices.compactMap { index -> PlannedEntry? in
-            guard index < spread.count else { return nil }
-            let minutes = dayIndex < spread[index].count ? spread[index][dayIndex] : 0
+            guard index < dailySplit.count, dayIndex < available else { return nil }
+            let minutes = dailySplit[index]
             guard minutes > 0 else { return nil }
             return PlannedEntry(
                 topicID: topics[index].topicID,
@@ -209,12 +225,13 @@ enum OverviewEngine {
         guard !entries.isEmpty else { return nil }
 
         let weekMinutes = weekly.reduce(0) { $0 + $1.minutes }
+        let anchor = PlannerEngine.weekStart(forWeekIndex: weekIndex, driver: driver.date, now: today, calendar: calendar)
 
         // Only real topics have a checkbox to tick, so only they can be done.
         // Asking about a stand-in would report a completion the user never made.
         let tickable = entries.filter { !$0.isSynthetic }
         let doneFlags = tickable.map { entry in
-            isDone(entry.topicID, weekIndex) ?? false
+            isDone(entry.topicID, anchor) ?? false
         }
         let hasTicks = doneFlags.contains { $0 }
         let isDone: Bool? = if tickable.isEmpty {
@@ -245,7 +262,8 @@ enum OverviewEngine {
             subjectID: subject.id,
             name: subject.name,
             accentHex: subject.accentHex,
-            examDate: exam,
+            driver: driver,
+            upcoming: PlannerEngine.upcomingAfter(driver, in: subject.assessments, now: today, calendar: calendar),
             totalMinutes: entries.reduce(0) { $0 + $1.minutes },
             entries: entries,
             weekMinutes: weekMinutes,

@@ -36,22 +36,20 @@ struct ContentView: View {
                 }
 
                 Section("Subjects") {
-                    ForEach(subjects) { subject in
-                        SubjectRow(subject: subject)
-                            .tag(SidebarSelection.subject(subject.id))
-                            .contextMenu {
-                                Button {
-                                    editingSubject = subject
-                                    showingEditor = true
-                                } label: {
-                                    Label("Rename…", systemImage: "pencil")
-                                }
-                                Button(role: .destructive) {
-                                    deletingSubject = subject
-                                } label: {
-                                    Label("Delete…", systemImage: "trash")
-                                }
+                    if subjects.isEmpty {
+                        // A quiet in-section prompt, not a whole-window state: Plan,
+                        // Focus, Sessions and Review still work without a subject.
+                        emptySubjectsHint
+                    } else {
+                        ForEach(activeSubjects) { subject in
+                            subjectRow(subject)
+                        }
+                        if !finishedSubjects.isEmpty {
+                            Divider()
+                            ForEach(finishedSubjects) { subject in
+                                subjectRow(subject)
                             }
+                        }
                     }
                 }
 
@@ -61,15 +59,6 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Shiken")
-            .overlay {
-                if subjects.isEmpty && selection == nil {
-                    ContentUnavailableView(
-                        "No subjects yet",
-                        systemImage: "book.closed",
-                        description: Text("Add a subject and its exam date — the plan builds from there.")
-                    )
-                }
-            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -101,7 +90,7 @@ struct ContentView: View {
             Button("Delete", role: .destructive) { deleteSubject() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Topics, plans, and sessions for this subject will be permanently removed.")
+            Text("Topics, plans, assessments, and sessions for this subject will be permanently removed.")
         }
         .onChange(of: scenePhase) { _, phase in
             if trackInterruptions {
@@ -114,6 +103,45 @@ struct ContentView: View {
                 focusTimer.awayEnd()
             }
         }
+    }
+
+    /// Subjects with something still to revise for, in the user's order.
+    private var activeSubjects: [Subject] {
+        subjects.filter { !$0.isFinished }
+    }
+
+    /// Everything with all assessments behind it. Kept in the sidebar, below the
+    /// active ones, so the history stays reachable without cluttering the plan.
+    private var finishedSubjects: [Subject] {
+        subjects.filter(\.isFinished)
+    }
+
+    /// One caption line in the Subjects section, styled like everything else in
+    /// the app rather than as a modal empty state.
+    private var emptySubjectsHint: some View {
+        Text("No subjects. Add one with its first assessment.")
+            .font(.system(size: DesignSystem.typeCaption()))
+            .foregroundStyle(.tertiary)
+            .padding(.vertical, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func subjectRow(_ subject: Subject) -> some View {
+        SubjectRow(subject: subject)
+            .tag(SidebarSelection.subject(subject.id))
+            .contextMenu {
+                Button {
+                    editingSubject = subject
+                    showingEditor = true
+                } label: {
+                    Label("Edit…", systemImage: "pencil")
+                }
+                Button(role: .destructive) {
+                    deletingSubject = subject
+                } label: {
+                    Label("Delete…", systemImage: "trash")
+                }
+            }
     }
 
     @ViewBuilder

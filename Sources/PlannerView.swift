@@ -1,11 +1,12 @@
 import SwiftUI
 import SwiftData
 
-// PlanBlock keyed by (topic, weekIndex) so reconciliation can preserve isDone
-// while targetMinutes evolve with the plan.
+// PlanBlock keyed by (topic, calendar week) so reconciliation can preserve
+// isDone while targetMinutes evolve, and so a tick survives the plan's driver
+// moving from one assessment to the next.
 private struct PlanKey: Hashable {
     let topicID: UUID
-    let week: Int
+    let weekStart: Date
 }
 
 private struct WeekCell: Identifiable {
@@ -46,16 +47,29 @@ struct PlannerView: View {
 
     private var usesStandIn: Bool { inputs.contains(where: \.isSynthetic) }
 
+    /// The assessment the plan is built around: the next one still ahead.
+    private var driver: AssessmentRef? {
+        subject.nextAssessment.map { AssessmentRef(id: $0.id, title: $0.title, date: $0.date) }
+    }
+
     private var blocks: [ScheduledBlock] {
-        guard let examDate = subject.examDate else { return [] }
-        return PlannerEngine.schedule(topics: inputs, examDate: examDate, dailyMinutes: subject.dailyMinutes)
+        guard let driver else { return [] }
+        return PlannerEngine.schedule(topics: inputs, driver: driver.date, dailyMinutes: subject.dailyMinutes)
+    }
+
+    private func key(_ topicID: UUID, week: Int) -> PlanKey? {
+        guard let driver else { return nil }
+        return PlanKey(
+            topicID: topicID,
+            weekStart: PlannerEngine.weekStart(forWeekIndex: week, driver: driver.date)
+        )
     }
 
     private var doneMap: [PlanKey: PlanBlock] {
         var map: [PlanKey: PlanBlock] = [:]
         for block in subject.topics.flatMap(\.planBlocks) {
             if let topicID = block.topic?.id {
-                map[PlanKey(topicID: topicID, week: block.weekIndex)] = block
+                map[PlanKey(topicID: topicID, weekStart: block.weekStart)] = block
             }
         }
         return map
@@ -73,7 +87,7 @@ struct PlannerView: View {
         }
         .navigationTitle(subject.name)
         .onAppear { reconcile() }
-        .onChange(of: subject.examDate) { _, _ in reconcile() }
+        .onChange(of: subject.sortedAssessments.map { "\($0.persistentModelID)-\($0.date)-\($0.title)" }.joined()) { _, _ in reconcile() }
         .onChange(of: subject.dailyMinutes) { _, _ in reconcile() }
         .onChange(of: subject.topics.map { "\($0.persistentModelID)-\($0.weight)" }.joined()) { _, _ in reconcile() }
     }
@@ -85,12 +99,16 @@ struct PlannerView: View {
             VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
                 Text(subject.name)
                     .font(.system(size: DesignSystem.typeDisplay(), weight: .semibold))
-                if let exam = subject.examDate {
-                    Text(examLine(exam))
+                if let driver {
+                    Text(driverLine)
+                        .font(.system(size: DesignSystem.typeBody()))
+                        .foregroundStyle(.secondary)
+                } else if subject.isFinished {
+                    Text("All assessments done — \(subject.name) is finished.")
                         .font(.system(size: DesignSystem.typeBody()))
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("Set an exam date to build the plan.")
+                    Text("Add an assessment to build the plan.")
                         .font(.system(size: DesignSystem.typeBody()))
                         .foregroundStyle(.secondary)
                 }
@@ -100,11 +118,27 @@ struct PlannerView: View {
         }
     }
 
-    private func examLine(_ exam: Date) -> String {
-        let days = Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: .now), to: Calendar.current.startOfDay(for: exam)).day ?? 0
-        if days < 0 { return "exam passed — plan is holding for the week before it" }
-        if days == 0 { return "exam is today" }
-        return exam.formatted(date: .abbreviated, time: .omitted) + " · \(days) days out"
+    private var driverLine: String {
+        guard let driver else { return "" }
+        let days = Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: .now),
+            to: Calendar.current.startOfDay(for: driver.date)
+        ).day ?? 0
+        var line: String
+        if days == 0 {
+            line = "\(driver.title) is today"
+        } else if days == 1 {
+            line = "\(driver.title) is tomorrow"
+        } else {
+            line = "\(driver.title) \(driver.date.formatted(date: .abbreviated, time: .omitted)) · \(days) days out"
+        }
+        let upcoming = subject.upcomingAssessments
+        if !upcoming.isEmpty {
+            let names = upcoming.prefix(2).map(\.title).joined(separator: ", ")
+            line += "  ·  then \(names)\(upcoming.count > 2 ? " (+\(upcoming.count - 2) more)" : "")"
+        }
+        return line
     }
 
     // MARK: Topics
@@ -150,9 +184,11 @@ struct PlannerView: View {
 
     private var planSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
-            if subject.examDate == nil {
+            if driver == nil {
                 planHeading
-                Text("Set an exam date for \(subject.name) to generate the week-by-week plan.")
+                Text(subject.isFinished
+                     ? "\(subject.name) has no assessments left, so there's no plan to build."
+                     : "Add an assessment to \(subject.name) to generate the week-by-week plan.")
                     .font(.system(size: DesignSystem.typeBody()))
                     .foregroundStyle(.secondary)
             } else {
@@ -263,11 +299,11 @@ struct PlannerView: View {
     }
 
     private var currentWeekDays: Int {
-        guard let exam = subject.examDate else { return 1 }
+        guard let driver else { return 1 }
         let days = Calendar.current.dateComponents(
             [.day],
             from: Calendar.current.startOfDay(for: .now),
-            to: Calendar.current.startOfDay(for: exam)
+            to: Calendar.current.startOfDay(for: driver.date)
         ).day ?? 0
         return max(1, min(7, days + 1))
     }
@@ -342,7 +378,7 @@ struct PlannerView: View {
                 // still shows its share of the week. Only ticking needs a
                 // persisted PlanBlock, which a stand-in never has.
                 let minutes = plannedMinutes(plan: plan, week: week) ?? 0
-                let block = doneMap[PlanKey(topicID: plan.topicID, week: week)]
+                let block = key(plan.topicID, week: week).flatMap { doneMap[$0] }
 
                 if let block, !plan.isSynthetic {
                     Button {
@@ -384,7 +420,7 @@ struct PlannerView: View {
     }
 
     private func weekLabel(_ week: Int, weeks: Int) -> String {
-        if week == 0 { return "Exam" }
+        if week == 0 { return driver?.title ?? "Assessment" }
         let remaining = weeks - 1 - week
         if remaining == 0 { return "This Week" }
         return "\(remaining)w"
@@ -405,7 +441,10 @@ struct PlannerView: View {
     }
 
     private func reconcile() {
-        guard let examDate = subject.examDate else {
+        guard let driver else {
+            // Nothing left to revise for (or nothing set up yet). Drop the blocks:
+            // with no assessment there is no ladder to reconcile against, and a
+            // stale tick against a week that no longer exists is worse than none.
             for block in subject.topics.flatMap(\.planBlocks) { ctx.delete(block) }
             try? ctx.save()
             return
@@ -415,29 +454,43 @@ struct PlannerView: View {
         var byKey: [PlanKey: PlanBlock] = [:]
         for block in subject.topics.flatMap(\.planBlocks) {
             if let topicID = block.topic?.id {
-                byKey[PlanKey(topicID: topicID, week: block.weekIndex)] = block
+                byKey[PlanKey(topicID: topicID, weekStart: block.weekStart)] = block
             }
         }
 
         let realTopicIDs = Set(subject.topics.map(\.id))
 
         var wanted = Set<PlanKey>()
-        for scheduled in PlannerEngine.schedule(topics: inputs, examDate: examDate, dailyMinutes: subject.dailyMinutes) {
+        for scheduled in PlannerEngine.schedule(topics: inputs, driver: driver.date, dailyMinutes: subject.dailyMinutes) {
             // A stand-in row is derived, not stored — there is no Topic to hang a
             // PlanBlock off, and inventing one would manufacture data on disk.
             guard realTopicIDs.contains(scheduled.topicID) else { continue }
-            let key = PlanKey(topicID: scheduled.topicID, week: scheduled.weekIndex)
+            let key = PlanKey(topicID: scheduled.topicID, weekStart: scheduled.weekStart)
             wanted.insert(key)
             if let existing = byKey[key] {
                 existing.targetMinutes = scheduled.minutes
+                existing.weekIndex = scheduled.weekIndex
             } else if let topic = subject.topics.first(where: { $0.id == scheduled.topicID }) {
-                ctx.insert(PlanBlock(weekIndex: scheduled.weekIndex, targetMinutes: scheduled.minutes, topic: topic))
+                ctx.insert(
+                    PlanBlock(
+                        weekIndex: scheduled.weekIndex,
+                        weekStart: scheduled.weekStart,
+                        targetMinutes: scheduled.minutes,
+                        topic: topic
+                    )
+                )
             }
         }
+        // Anything the ladder no longer covers. A block whose week has passed
+        // stays, so ticks already earned are never thrown away mid-term.
         for (key, block) in byKey where !wanted.contains(key) {
-            ctx.delete(block)
+            if block.weekStart >= currentWeekStart { ctx.delete(block) }
         }
         try? ctx.save()
+    }
+
+    private var currentWeekStart: Date {
+        PlannerEngine.weekStart(containing: .now)
     }
 }
 

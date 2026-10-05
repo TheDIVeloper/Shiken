@@ -36,9 +36,20 @@ struct SubjectReview: Equatable, Sendable {
 enum ReviewEngine {
     static let windowDays = 7
 
-    /// The plan-column closest to now (exam week is 0).
-    static func currentWeekIndex(examDate: Date, now: Date = .now, calendar: Calendar = .current) -> Int {
-        PlannerEngine.weeksBetween(examDate, from: now, calendar: calendar) - 1
+    /// The plan-column closest to now (the driver's week is 0).
+    static func currentWeekIndex(driver: Date, now: Date = .now, calendar: Calendar = .current) -> Int {
+        PlannerEngine.weeksBetween(driver, from: now, calendar: calendar) - 1
+    }
+
+    /// The calendar week the review is measuring against. Same anchoring as the
+    /// planner so a tick in the grid and a review of that week always agree.
+    static func currentWeekStart(driver: Date, now: Date = .now, calendar: Calendar = .current) -> Date {
+        PlannerEngine.weekStart(
+            forWeekIndex: currentWeekIndex(driver: driver, now: now, calendar: calendar),
+            driver: driver,
+            now: now,
+            calendar: calendar
+        )
     }
 
     /// Sessions for one subject inside the trailing window (today inclusive).
@@ -57,11 +68,11 @@ enum ReviewEngine {
         topics: [TopicPlan],
         plan: [ScheduledBlock],
         sessions: [SessionRecord],
-        examDate: Date,
+        driver: Date,
         now: Date = .now,
         calendar: Calendar = .current
     ) -> SubjectReview {
-        let week = currentWeekIndex(examDate: examDate, now: now, calendar: calendar)
+        let week = currentWeekIndex(driver: driver, now: now, calendar: calendar)
         let inWindow = sessionsInWindow(sessions, subjectID: subjectID, now: now, calendar: calendar)
 
         let topicReviews = topics.map { topic -> TopicReview in

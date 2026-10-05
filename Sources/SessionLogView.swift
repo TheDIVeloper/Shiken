@@ -6,22 +6,41 @@ struct SessionLogView: View {
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
 
     var body: some View {
-        List {
-            ForEach(sessions) { session in
-                SessionRow(session: session)
-            }
-            .onDelete(perform: delete)
-        }
-        .overlay {
+        Group {
             if sessions.isEmpty {
-                ContentUnavailableView(
-                    "No sessions yet",
-                    systemImage: "timer",
-                    description: Text("Your focus sessions land here once you run the timer.")
-                )
+                // Not an overlay on the List: a floating panel gets clipped by the
+                // list's own row backgrounds and edges, so the card looks cut off.
+                ScrollView {
+                    emptyState
+                        .padding(DesignSystem.spaceXL())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                List {
+                    ForEach(sessions) { session in
+                        SessionRow(session: session)
+                    }
+                    .onDelete(perform: delete)
+                }
             }
         }
         .navigationTitle("Sessions")
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+            Text("No sessions yet")
+                .font(.system(size: DesignSystem.typeTitle(), weight: .semibold))
+            Text("Your focus sessions land here once you run the timer.")
+                .font(.system(size: DesignSystem.typeBody()))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DesignSystem.spaceL())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                .fill(DesignSystem.panelFill())
+        )
     }
 
     private func delete(at offsets: IndexSet) {
