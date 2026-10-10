@@ -83,7 +83,8 @@ struct SubjectEditorSheet: View {
 
         // Every timetable row, including the one being edited, so the divisor
         // stays correct no matter which subject is open.
-        var timetable = peers
+        let sanitizedPeers = peers.filter { $0.id != subject?.id }
+        var timetable = sanitizedPeers
         if let subject {
             timetable.append(SubjectPlan(
                 id: subject.id,
@@ -95,7 +96,7 @@ struct SubjectEditorSheet: View {
             subjects: timetable, totalDailyMinutes: totalDailyMinutes
         )
 
-        _peerTimetable = State(initialValue: peers)
+        _peerTimetable = State(initialValue: sanitizedPeers)
         _totalDailyMinutes = State(initialValue: totalDailyMinutes)
 
         if let subject {

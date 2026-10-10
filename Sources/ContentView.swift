@@ -91,7 +91,7 @@ struct ContentView: View {
         .sheet(isPresented: $showingEditor) {
             SubjectEditorSheet(
                 subject: editingSubject,
-                peers: timetablePeers,
+                peers: timetablePeers.filter { $0.id != editingSubject?.id },
                 totalDailyMinutes: totalDailyMinutes
             ) { newID in
                 selection = .subject(newID)

@@ -66,15 +66,18 @@ enum Timetable {
             .filter { !$0.isEnrichment }
             .reduce(0) { $0 + max(0, $1.periodsPerWeek) }
 
-        return Dictionary(uniqueKeysWithValues: subjects.map { subject in
-            let minutes = derivedDailyMinutes(
-                periodsPerWeek: subject.periodsPerWeek,
-                isEnrichment: subject.isEnrichment,
-                totalDailyMinutes: totalDailyMinutes,
-                totalPeriods: totalPeriods
-            )
-            return (subject.id, minutes)
-        })
+        return Dictionary(
+            subjects.map { subject in
+                let minutes = derivedDailyMinutes(
+                    periodsPerWeek: subject.periodsPerWeek,
+                    isEnrichment: subject.isEnrichment,
+                    totalDailyMinutes: totalDailyMinutes,
+                    totalPeriods: totalPeriods
+                )
+                return (subject.id, minutes)
+            },
+            uniquingKeysWith: { _, last in last }
+        )
     }
 }
 

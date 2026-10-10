@@ -110,4 +110,16 @@ final class TimetableTests: XCTestCase {
         }
         XCTAssertEqual(Timetable.derivation(subjects: subjects).count, subjects.count)
     }
+
+    func testDuplicateSubjectIDsDoNotCrashDerivation() {
+        let sharedID = UUID()
+        let subjects = [
+            SubjectPlan(id: sharedID, periodsPerWeek: 4, isEnrichment: false),
+            SubjectPlan(id: sharedID, periodsPerWeek: 4, isEnrichment: false),
+            SubjectPlan(id: UUID(), periodsPerWeek: 4, isEnrichment: false)
+        ]
+        let derived = Timetable.derivation(subjects: subjects)
+        XCTAssertEqual(derived.count, 2)
+        XCTAssertNotNil(derived[sharedID])
+    }
 }
