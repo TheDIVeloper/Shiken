@@ -151,57 +151,81 @@ struct ErrorLogView: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(maxWidth: 320)
+            .frame(width: 280)
 
-            Menu {
-                Button("All subjects") {
-                    selectedSubjectID = nil
-                }
-                ForEach(subjects) { subj in
-                    Button(subj.name) {
-                        selectedSubjectID = subj.id
-                    }
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(selectedSubjectName)
-                        .font(.system(size: DesignSystem.typeCaption()))
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 8))
-                }
-                .padding(.horizontal, DesignSystem.spaceS())
-                .padding(.vertical, DesignSystem.spaceXS())
-                .background(
-                    RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                        .fill(DesignSystem.panelFill())
-                )
-            }
-            .buttonStyle(.plain)
+            Divider()
+                .frame(height: 18)
+                .padding(.horizontal, DesignSystem.spaceXS())
 
-            Menu {
-                Button("All categories") {
-                    selectedCategory = nil
-                }
-                ForEach(ErrorCategory.allCases, id: \.self) { cat in
-                    Button(cat.label) {
-                        selectedCategory = cat
+            HStack(spacing: DesignSystem.spaceS()) {
+                Menu {
+                    Button("All subjects") {
+                        selectedSubjectID = nil
                     }
+                    Divider()
+                    ForEach(subjects) { subj in
+                        Button(subj.name) {
+                            selectedSubjectID = subj.id
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "book.closed")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.secondary)
+                        Text(selectedSubjectName)
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.horizontal, DesignSystem.spaceM())
+                    .padding(.vertical, DesignSystem.spaceXS())
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                            .fill(DesignSystem.panelFill())
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                            .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+                    )
                 }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(selectedCategory?.label ?? "All categories")
-                        .font(.system(size: DesignSystem.typeCaption()))
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 8))
+                .buttonStyle(.plain)
+
+                Menu {
+                    Button("All categories") {
+                        selectedCategory = nil
+                    }
+                    Divider()
+                    ForEach(ErrorCategory.allCases, id: \.self) { cat in
+                        Button(cat.label) {
+                            selectedCategory = cat
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "tag")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.secondary)
+                        Text(selectedCategory?.label ?? "All categories")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.horizontal, DesignSystem.spaceM())
+                    .padding(.vertical, DesignSystem.spaceXS())
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                            .fill(DesignSystem.panelFill())
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                            .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+                    )
                 }
-                .padding(.horizontal, DesignSystem.spaceS())
-                .padding(.vertical, DesignSystem.spaceXS())
-                .background(
-                    RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                        .fill(DesignSystem.panelFill())
-                )
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             Spacer()
         }
@@ -452,57 +476,145 @@ struct LogErrorSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Picker("Subject", selection: Binding(
-                        get: { currentSubject?.id ?? UUID() },
-                        set: {
-                            selectedSubjectID = $0
-                            selectedTopicID = nil
-                        }
-                    )) {
-                        ForEach(subjects) { subj in
-                            Text(subj.name).tag(subj.id)
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: DesignSystem.spaceL()) {
+                    VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+                        Text("Log Revision Error")
+                            .font(.system(size: DesignSystem.typeTitle(), weight: .semibold))
+                        Text("Record a mistake made while revising to revisit it at spaced intervals until resolved.")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.secondary)
                     }
 
-                    if let subject = currentSubject, !subject.topics.isEmpty {
-                        Picker("Topic (optional)", selection: $selectedTopicID) {
-                            Text("Whole subject").tag(nil as UUID?)
-                            ForEach(subject.topics.sorted { $0.position < $1.position }) { topic in
-                                Text(topic.title).tag(topic.id as UUID?)
+                    VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+                        Text("Subject and Topic")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: DesignSystem.spaceM()) {
+                            Picker("Subject", selection: Binding(
+                                get: { currentSubject?.id ?? UUID() },
+                                set: {
+                                    selectedSubjectID = $0
+                                    selectedTopicID = nil
+                                }
+                            )) {
+                                ForEach(subjects) { subj in
+                                    Text(subj.name).tag(subj.id)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            if let subject = currentSubject, !subject.topics.isEmpty {
+                                Picker("Topic", selection: $selectedTopicID) {
+                                    Text("Whole subject").tag(nil as UUID?)
+                                    ForEach(subject.topics.sorted { $0.position < $1.position }) { topic in
+                                        Text(topic.title).tag(topic.id as UUID?)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                    }
+                    .padding(DesignSystem.spaceM())
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                            .fill(DesignSystem.panelFill())
+                    )
+
+                    VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
+                        Text("Mistake Category")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: DesignSystem.spaceS()),
+                            GridItem(.flexible(), spacing: DesignSystem.spaceS())
+                        ], spacing: DesignSystem.spaceS()) {
+                            ForEach(ErrorCategory.allCases, id: \.self) { cat in
+                                let isSelected = category == cat
+                                Button {
+                                    category = cat
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                            .font(.system(size: DesignSystem.typeBody()))
+                                            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                                        Text(cat.label)
+                                            .font(.system(size: DesignSystem.typeCaption(), weight: isSelected ? .semibold : .medium))
+                                            .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                                        Spacer(minLength: 0)
+                                    }
+                                    .padding(.horizontal, DesignSystem.spaceM())
+                                    .padding(.vertical, DesignSystem.spaceS())
+                                    .background(
+                                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                                            .fill(isSelected ? Color.accentColor.opacity(0.12) : DesignSystem.panelFill())
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                                            .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.15), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
 
-                    Picker("Category", selection: $category) {
-                        ForEach(ErrorCategory.allCases, id: \.self) { cat in
-                            Text(cat.label).tag(cat)
-                        }
+                    VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+                        Text("What was the mistake?")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        TextField(
+                            "Describe what slipped and what the correct rule, formula, or strategy should be...",
+                            text: $errorDescription,
+                            axis: .vertical
+                        )
+                        .textFieldStyle(.plain)
+                        .lineLimit(4...8)
+                        .padding(DesignSystem.spaceM())
+                        .background(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                                .fill(DesignSystem.panelFill())
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                                .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
+                        )
                     }
 
-                    DatePicker("Date occurred", selection: $date, displayedComponents: .date)
+                    HStack {
+                        Text("Date occurred")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        DatePicker("", selection: $date, displayedComponents: .date)
+                            .labelsHidden()
+                            .datePickerStyle(.compact)
+                    }
+                    .padding(DesignSystem.spaceM())
+                    .background(
+                        RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                            .fill(DesignSystem.panelFill())
+                    )
                 }
-
-                Section("Description") {
-                    TextField("What was the mistake?", text: $errorDescription, axis: .vertical)
-                        .lineLimit(3...6)
-                }
+                .padding(DesignSystem.spaceXL())
             }
-            .navigationTitle("Log Revision Error")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button("Save error") {
                         save()
                     }
                     .disabled(errorDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || currentSubject == nil)
+                    .buttonStyle(.borderedProminent)
                 }
             }
         }
-        .frame(minWidth: 420, minHeight: 340)
+        .frame(minWidth: 540, idealWidth: 580, minHeight: 520, idealHeight: 560)
     }
 
     private func save() {

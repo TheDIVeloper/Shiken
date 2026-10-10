@@ -16,7 +16,7 @@ struct PlanOverviewView: View {
     private enum Scale: String, CaseIterable, Identifiable {
         case today, week
         var id: String { rawValue }
-        var label: String { rawValue == "today" ? "Today" : "Week" }
+        var label: String { rawValue == "today" ? "Daily" : "Weekly" }
     }
 
     @State private var scale: Scale = .today
@@ -132,19 +132,25 @@ struct PlanOverviewView: View {
     // MARK: Controls Bar
 
     private var controlsBar: some View {
-        HStack(spacing: DesignSystem.spaceM()) {
-            Picker("Scale", selection: $scale) {
-                ForEach(Scale.allCases) { Text($0.label).tag($0) }
+        VStack(alignment: .leading, spacing: DesignSystem.spaceM()) {
+            HStack(spacing: DesignSystem.spaceM()) {
+                Picker("Scale", selection: $scale) {
+                    ForEach(Scale.allCases) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 180)
+
+                if scale == .today {
+                    dateNavigator
+                }
+
+                Spacer()
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 180)
 
             if scale == .today {
-                dateNavigator
+                dayStrip
             }
-
-            Spacer()
         }
     }
 
@@ -158,9 +164,13 @@ struct PlanOverviewView: View {
             }
             .buttonStyle(.plain)
 
-            Text(dateDisplayTitle(selectedDate))
-                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color.primary : Color.secondary)
+            DatePicker(
+                "",
+                selection: $selectedDate,
+                displayedComponents: .date
+            )
+            .labelsHidden()
+            .datePickerStyle(.compact)
 
             Button {
                 selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
@@ -185,6 +195,43 @@ struct PlanOverviewView: View {
             RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
                 .fill(DesignSystem.panelFill())
         )
+    }
+
+    private var dayStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DesignSystem.spaceXS()) {
+                ForEach(0..<14, id: \.self) { offset in
+                    if let date = Calendar.current.date(byAdding: .day, value: offset, to: Calendar.current.startOfDay(for: .now)) {
+                        dayPill(date: date, offset: offset)
+                    }
+                }
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func dayPill(date: Date, offset: Int) -> some View {
+        let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
+        let label: String = {
+            if offset == 0 { return "Today" }
+            if offset == 1 { return "Tomorrow" }
+            return date.formatted(.dateTime.weekday(.abbreviated).day())
+        }()
+
+        return Button {
+            selectedDate = date
+        } label: {
+            Text(label)
+                .font(.system(size: DesignSystem.typeCaption(), weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .padding(.horizontal, DesignSystem.spaceM())
+                .padding(.vertical, DesignSystem.spaceXS())
+                .background(
+                    RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                        .fill(isSelected ? Color.accentColor : DesignSystem.panelFill())
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     private func dateDisplayTitle(_ date: Date) -> String {
@@ -478,13 +525,6 @@ struct PlanOverviewView: View {
             }
 
             if task.isAdHoc {
-                Text("Ad hoc")
-                    .font(.system(size: DesignSystem.typeCaption()))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(Color.secondary.opacity(0.12)))
-
                 Button {
                     deleteAdHoc(task)
                 } label: {
@@ -493,7 +533,19 @@ struct PlanOverviewView: View {
                         .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
+                .help("Delete task")
             }
+        }
+    }
+
+    private func taskInputPlaceholder(for date: Date) -> String {
+        if Calendar.current.isDateInToday(date) {
+            return "Add a task for today..."
+        } else if Calendar.current.isDateInTomorrow(date) {
+            return "Add a task for tomorrow..."
+        } else {
+            let formatted = date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+            return "Add a task for \(formatted)..."
         }
     }
 
@@ -503,7 +555,7 @@ struct PlanOverviewView: View {
                 .font(.system(size: DesignSystem.typeCaption()))
                 .foregroundStyle(.tertiary)
 
-            TextField("Add ad hoc task for today...", text: Binding(
+            TextField(taskInputPlaceholder(for: selectedDate), text: Binding(
                 get: { adHocDrafts[subject.id] ?? "" },
                 set: { adHocDrafts[subject.id] = $0 }
             ))
@@ -668,83 +720,91 @@ struct PlanOverviewView: View {
 
     private func dayColumn(_ day: OverviewDay) -> some View {
         let isToday = Calendar.current.isDateInToday(day.date)
+        let isSelected = Calendar.current.isDate(day.date, inSameDayAs: selectedDate)
         let width: CGFloat = 132
 
-        return VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(isToday ? "Today" : day.date.formatted(.dateTime.weekday(.abbreviated)))
-                    .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                    .foregroundStyle(isToday ? .primary : .secondary)
-                Text(day.date.formatted(date: .numeric, time: .omitted))
-                    .font(.system(size: DesignSystem.typeCaption()))
-                    .foregroundStyle(.tertiary)
-            }
-
-            HStack(spacing: 4) {
-                Text("\(day.totalMinutes)m")
-                    .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
-                    .monospacedDigit()
-                if day.isMet {
-                    Image(systemName: "checkmark.circle.fill")
+        return Button {
+            selectedDate = day.date
+            scale = .today
+        } label: {
+            VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(isToday ? "Today" : day.date.formatted(.dateTime.weekday(.abbreviated)))
+                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                        .foregroundStyle(isToday ? .primary : .secondary)
+                    Text(day.date.formatted(date: .numeric, time: .omitted))
                         .font(.system(size: DesignSystem.typeCaption()))
-                        .foregroundStyle(.green)
-                        .help("Target met")
+                        .foregroundStyle(.tertiary)
                 }
-            }
 
-            Divider()
+                HStack(spacing: 4) {
+                    Text("\(day.totalMinutes)m")
+                        .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
+                        .monospacedDigit()
+                    if day.isMet {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.green)
+                            .help("Target met")
+                    }
+                }
 
-            if day.subjects.isEmpty {
-                Text("None")
-                    .font(.system(size: DesignSystem.typeCaption()))
-                    .foregroundStyle(.tertiary)
-            } else {
-                ForEach(day.subjects) { planned in
-                    let subject = subjects.first(where: { $0.id == planned.subjectID })
-                    let isTaskMode = subject?.dayMode == .tasks
+                Divider()
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(DesignSystem.hexColor(planned.accentHex))
-                                .frame(width: 6, height: 6)
-                            Text(planned.name)
-                                .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
-                                .lineLimit(1)
-                        }
+                if day.subjects.isEmpty {
+                    Text("None")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.tertiary)
+                } else {
+                    ForEach(day.subjects) { planned in
+                        let subject = subjects.first(where: { $0.id == planned.subjectID })
+                        let isTaskMode = subject?.dayMode == .tasks
 
-                        if isTaskMode, let subject {
-                            let tasks = DayTaskEngine.tasksForDay(
-                                subject: subject.planInput,
-                                driver: AssessmentRef(id: planned.driver.id, title: planned.driver.title, date: planned.driver.date),
-                                date: day.date,
-                                persisted: dayTaskRecords
-                            )
-                            let sum = DayTaskEngine.summary(tasks: tasks)
-                            Text("\(sum.completedTasks)/\(sum.totalTasks) tasks")
-                                .font(.system(size: DesignSystem.typeCaption()))
-                                .foregroundStyle(sum.isComplete ? .green : .secondary)
-                                .padding(.leading, 11)
-                        } else {
-                            ForEach(planned.entries) { entry in
-                                Text(entry.isSynthetic ? "\(entry.minutes)m" : "\(entry.minutes)m \(entry.title)")
-                                    .font(.system(size: DesignSystem.typeCaption()))
-                                    .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 5) {
+                                Circle()
+                                    .fill(DesignSystem.hexColor(planned.accentHex))
+                                    .frame(width: 6, height: 6)
+                                Text(planned.name)
+                                    .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
                                     .lineLimit(1)
+                            }
+
+                            if isTaskMode, let subject {
+                                let tasks = DayTaskEngine.tasksForDay(
+                                    subject: subject.planInput,
+                                    driver: AssessmentRef(id: planned.driver.id, title: planned.driver.title, date: planned.driver.date),
+                                    date: day.date,
+                                    persisted: dayTaskRecords
+                                )
+                                let sum = DayTaskEngine.summary(tasks: tasks)
+                                Text("\(sum.completedTasks)/\(sum.totalTasks) tasks")
+                                    .font(.system(size: DesignSystem.typeCaption()))
+                                    .foregroundStyle(sum.isComplete ? .green : .secondary)
                                     .padding(.leading, 11)
+                            } else {
+                                ForEach(planned.entries) { entry in
+                                    Text(entry.isSynthetic ? "\(entry.minutes)m" : "\(entry.minutes)m \(entry.title)")
+                                        .font(.system(size: DesignSystem.typeCaption()))
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                        .padding(.leading, 11)
+                                }
                             }
                         }
                     }
                 }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+            .padding(.vertical, DesignSystem.spaceS())
+            .padding(.horizontal, DesignSystem.spaceS())
+            .frame(width: width, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.12) : (isToday ? Color.accentColor.opacity(0.06) : Color.clear))
+            )
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, DesignSystem.spaceS())
-        .padding(.horizontal, DesignSystem.spaceS())
-        .frame(width: width, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                .fill(isToday ? Color.accentColor.opacity(0.08) : Color.clear)
-        )
+        .buttonStyle(.plain)
     }
 }
