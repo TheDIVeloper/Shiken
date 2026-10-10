@@ -127,7 +127,7 @@ struct PlannerView: View {
             Stepper(
                 subject.dayMode == .tasks ? "≈ \(subject.dailyMinutes) m/day guide" : "\(subject.dailyMinutes) min/day",
                 value: $subject.dailyMinutes,
-                in: 15...240,
+                in: 15...720,
                 step: 15
             )
         }

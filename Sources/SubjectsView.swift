@@ -151,7 +151,7 @@ struct SubjectEditorSheet: View {
                         : "Time budget: daily completion is measured by focused minutes logged against your daily target."
                     )
 
-                    Stepper(dayModeRaw == "tasks" ? "Daily guide \(dailyMinutes) min" : "Daily target \(dailyMinutes) min", value: $dailyMinutes, in: 15...240, step: 15)
+                    Stepper(dayModeRaw == "tasks" ? "Daily guide \(dailyMinutes) min" : "Daily target \(dailyMinutes) min", value: $dailyMinutes, in: 15...720, step: 15)
                         .onChange(of: dailyMinutes) { _, _ in
                             // Any deliberate move to the stepper means the user has
                             // decided; stop re-deriving over the top of them.

@@ -19,7 +19,7 @@ struct FocusView: View {
         let storedLength = UserDefaults.standard.integer(forKey: "focusLength")
         _selectedLength = State(initialValue: [25, 50, 90].contains(storedLength) ? storedLength : -1)
         let storedCustom = UserDefaults.standard.integer(forKey: "customFocusMinutes")
-        let safe = (1...240).contains(storedCustom) ? storedCustom : 45
+        let safe = (1...720).contains(storedCustom) ? storedCustom : 45
         _customMinutesText = State(initialValue: String(safe))
     }
 
@@ -264,7 +264,7 @@ struct FocusView: View {
 
     private func commitCustomMinutes() {
         let raw = Int(customMinutesText.trimmingCharacters(in: .whitespaces)) ?? 0
-        let clamped = min(240, max(1, raw))
+        let clamped = min(720, max(1, raw))
         customMinutesText = String(clamped)
         customFocusMinutes = clamped
         lengthMinutes = clamped

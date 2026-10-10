@@ -71,12 +71,12 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
 
-                Stepper("Default daily target \(defaultDailyMinutes) min", value: $defaultDailyMinutes, in: 15...240, step: 15)
+                Stepper("Default daily target \(defaultDailyMinutes) min", value: $defaultDailyMinutes, in: 15...720, step: 15)
                 .onChange(of: defaultDailyMinutes) { _, new in
                     applyDerivedMinutes(to: new)
                 }
 
-                Stepper("Total daily study \(totalDailyMinutes) min", value: $totalDailyMinutes, in: 60...600, step: 30)
+                Stepper("Total daily study \(totalDailyMinutes) min", value: $totalDailyMinutes, in: 60...720, step: 30)
                 Text("How long you revise for in total on a normal day, added across every subject. Shiken splits this between your assessed subjects by how many lessons each has, so raising it raises everyone's suggestion.")
                     .font(.system(size: DesignSystem.typeCaption()))
                     .foregroundStyle(.secondary)
