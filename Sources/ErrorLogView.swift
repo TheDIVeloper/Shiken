@@ -56,7 +56,7 @@ struct ErrorLogView: View {
             VStack(alignment: .leading, spacing: DesignSystem.spaceXL()) {
                 header
                 statsSection
-                filterBar
+                listSubheader
 
                 if filteredRecords.isEmpty {
                     emptyState
@@ -96,139 +96,206 @@ struct ErrorLogView: View {
         }
     }
 
-    // MARK: Stats
+    // MARK: Stats and Status Filtering
 
     private var statsSection: some View {
         HStack(spacing: DesignSystem.spaceM()) {
-            statCard(
+            filterCard(
+                status: .all,
+                title: "All",
+                value: summary.total,
+                highlightColor: Color.secondary,
+                icon: "tray.full"
+            )
+            filterCard(
+                status: .due,
                 title: "Due today",
-                value: "\(summary.dueToday)",
-                highlightColor: summary.dueToday > 0 ? Color.orange : Color.secondary
+                value: summary.dueToday,
+                highlightColor: summary.dueToday > 0 ? Color.orange : Color.secondary,
+                icon: "clock.badge.exclamationmark"
             )
-            statCard(
+            filterCard(
+                status: .active,
                 title: "Active",
-                value: "\(summary.active)",
-                highlightColor: Color.primary
+                value: summary.active,
+                highlightColor: Color.primary,
+                icon: "arrow.triangle.2.circlepath"
             )
-            statCard(
+            filterCard(
+                status: .resolved,
                 title: "Resolved",
-                value: "\(summary.resolved)",
-                highlightColor: Color.green
-            )
-            statCard(
-                title: "Total logged",
-                value: "\(summary.total)",
-                highlightColor: Color.secondary
+                value: summary.resolved,
+                highlightColor: Color.green,
+                icon: "checkmark.circle"
             )
         }
     }
 
-    private func statCard(title: String, value: String, highlightColor: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(value)
-                .font(.system(size: DesignSystem.typeDisplay(), weight: .semibold, design: .monospaced))
-                .foregroundStyle(highlightColor)
-            Text(title)
-                .font(.system(size: DesignSystem.typeCaption()))
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DesignSystem.spaceM())
-        .background(
-            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
-                .fill(DesignSystem.panelFill())
-        )
-    }
-
-    // MARK: Filters
-
-    private var filterBar: some View {
-        HStack(spacing: DesignSystem.spaceM()) {
-            Picker("Status", selection: $filterStatus) {
-                ForEach(ErrorFilterStatus.allCases) { status in
-                    Text(status.label).tag(status)
+    private func filterCard(
+        status: ErrorFilterStatus,
+        title: String,
+        value: Int,
+        highlightColor: Color,
+        icon: String
+    ) -> some View {
+        let isSelected = filterStatus == status
+        return Button {
+            filterStatus = status
+        } label: {
+            VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
+                HStack {
+                    Image(systemName: icon)
+                        .font(.system(size: DesignSystem.typeBody()))
+                        .foregroundStyle(isSelected ? Color.accentColor : highlightColor)
+                    Spacer()
+                    if isSelected {
+                        Circle()
+                            .fill(Color.accentColor)
+                            .frame(width: 6, height: 6)
+                    }
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(value)")
+                        .font(.system(size: DesignSystem.typeDisplay(), weight: .semibold, design: .monospaced))
+                        .foregroundStyle(isSelected ? Color.accentColor : highlightColor)
+                    Text(title)
+                        .font(.system(size: DesignSystem.typeCaption(), weight: isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? .primary : .secondary)
                 }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 280)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(DesignSystem.spaceM())
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.08) : DesignSystem.panelFill())
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                    .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.12), lineWidth: isSelected ? 1.5 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .contentShape(RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous))
+    }
 
-            Divider()
-                .frame(height: 18)
-                .padding(.horizontal, DesignSystem.spaceXS())
+    // MARK: List Subheader and Filters
 
+    private var listSubheader: some View {
+        HStack(alignment: .center) {
             HStack(spacing: DesignSystem.spaceS()) {
-                Menu {
-                    Button("All subjects") {
-                        selectedSubjectID = nil
-                    }
-                    Divider()
-                    ForEach(subjects) { subj in
-                        Button(subj.name) {
-                            selectedSubjectID = subj.id
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "book.closed")
-                            .font(.system(size: DesignSystem.typeCaption()))
-                            .foregroundStyle(.secondary)
-                        Text(selectedSubjectName)
-                            .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(.horizontal, DesignSystem.spaceM())
-                    .padding(.vertical, DesignSystem.spaceXS())
-                    .background(
-                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                            .fill(DesignSystem.panelFill())
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                            .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
-                    )
-                }
-                .buttonStyle(.plain)
-
-                Menu {
-                    Button("All categories") {
-                        selectedCategory = nil
-                    }
-                    Divider()
-                    ForEach(ErrorCategory.allCases, id: \.self) { cat in
-                        Button(cat.label) {
-                            selectedCategory = cat
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "tag")
-                            .font(.system(size: DesignSystem.typeCaption()))
-                            .foregroundStyle(.secondary)
-                        Text(selectedCategory?.label ?? "All categories")
-                            .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(.horizontal, DesignSystem.spaceM())
-                    .padding(.vertical, DesignSystem.spaceXS())
-                    .background(
-                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                            .fill(DesignSystem.panelFill())
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                            .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
-                    )
-                }
-                .buttonStyle(.plain)
+                Text(filterHeading)
+                    .font(.system(size: DesignSystem.typeTitle(), weight: .semibold))
+                Text("\(filteredRecords.count)")
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .bold))
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Color.accentColor.opacity(0.12)))
             }
 
             Spacer()
+
+            HStack(spacing: DesignSystem.spaceS()) {
+                subjectMenu
+                categoryMenu
+
+                if selectedSubjectID != nil || selectedCategory != nil {
+                    Button {
+                        selectedSubjectID = nil
+                        selectedCategory = nil
+                    } label: {
+                        Text("Reset")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 4)
+                }
+            }
         }
+    }
+
+    private var filterHeading: String {
+        switch filterStatus {
+        case .all: return "All errors"
+        case .due: return "Due for review today"
+        case .active: return "Active errors"
+        case .resolved: return "Resolved errors"
+        }
+    }
+
+    private var subjectMenu: some View {
+        Menu {
+            Button("All subjects") {
+                selectedSubjectID = nil
+            }
+            Divider()
+            ForEach(subjects) { subj in
+                Button(subj.name) {
+                    selectedSubjectID = subj.id
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "book.closed")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(selectedSubjectID != nil ? Color.accentColor : Color.secondary)
+                Text(selectedSubjectName)
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                    .foregroundStyle(selectedSubjectID != nil ? Color.accentColor : Color.primary)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(selectedSubjectID != nil ? Color.accentColor.opacity(0.7) : Color.secondary.opacity(0.5))
+            }
+            .padding(.horizontal, DesignSystem.spaceM())
+            .padding(.vertical, DesignSystem.spaceXS())
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                    .fill(selectedSubjectID != nil ? Color.accentColor.opacity(0.08) : DesignSystem.panelFill())
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                    .stroke(selectedSubjectID != nil ? Color.accentColor.opacity(0.4) : Color.secondary.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var categoryMenu: some View {
+        Menu {
+            Button("All categories") {
+                selectedCategory = nil
+            }
+            Divider()
+            ForEach(ErrorCategory.allCases, id: \.self) { cat in
+                Button(cat.label) {
+                    selectedCategory = cat
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "tag")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(selectedCategory != nil ? Color.accentColor : Color.secondary)
+                Text(selectedCategory?.label ?? "All categories")
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                    .foregroundStyle(selectedCategory != nil ? Color.accentColor : Color.primary)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(selectedCategory != nil ? Color.accentColor.opacity(0.7) : Color.secondary.opacity(0.5))
+            }
+            .padding(.horizontal, DesignSystem.spaceM())
+            .padding(.vertical, DesignSystem.spaceXS())
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                    .fill(selectedCategory != nil ? Color.accentColor.opacity(0.08) : DesignSystem.panelFill())
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                    .stroke(selectedCategory != nil ? Color.accentColor.opacity(0.4) : Color.secondary.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var selectedSubjectName: String {
