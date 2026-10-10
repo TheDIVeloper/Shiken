@@ -201,7 +201,7 @@ final class AssessmentDriverTests: XCTestCase {
 
     func testWeekStartIsStableForADateInTheSameWeek() {
         let monday = PlannerEngine.weekStart(containing: day(0), calendar: calendar)
-        let later = calendar.date(byAdding: .day, value: 3, to: day(0))!
+        let later = calendar.date(byAdding: .day, value: 3, to: monday)!
         XCTAssertEqual(PlannerEngine.weekStart(containing: later, calendar: calendar), monday)
     }
 
@@ -251,15 +251,35 @@ final class AssessmentDriverTests: XCTestCase {
 
     func testDriverChangeKeepsTheCurrentWeeksPlanIdentical() {
         let a = TopicPlan(topicID: UUID(), title: "A", weight: 1)
-        // Both drivers are far enough out that this week's column is the same
-        // calendar week, so its block should carry the same anchor.
-        let near = PlannerEngine.schedule(topics: [a], driver: day(20), dailyMinutes: 60, from: Date(), calendar: calendar)
-        let far = PlannerEngine.schedule(topics: [a], driver: day(27), dailyMinutes: 60, from: Date(), calendar: calendar)
-        let thisWeek = PlannerEngine.weekStart(containing: Date(), calendar: calendar)
+        // Pin 'now' to a Monday so the anchor week is unambiguous and both
+        // drivers sit on a known ladder row. The earlier version used day(20)
+        // against the real clock, which only passed when today's week happened
+        // to line up with the ladder. Thursday 2026-10-08 it did not.
+        let now = calendar.date(from: DateComponents(year: 2026, month: 10, day: 12))!
+        let thisWeek = PlannerEngine.weekStart(containing: now, calendar: calendar)
+        XCTAssertEqual(now, thisWeek, "the pin must be a week start for this to hold")
+
+        // 3 days out anchors this week at row 0; 10 days out spans two weeks and
+        // anchors the same week at row 1. Same column, same dailyMinutes, so the
+        // block that covers this week is identical either way.
+        let near = PlannerEngine.schedule(
+            topics: [a], driver: calendar.date(byAdding: .day, value: 3, to: now)!,
+            dailyMinutes: 60, from: now, calendar: calendar
+        )
+        let far = PlannerEngine.schedule(
+            topics: [a], driver: calendar.date(byAdding: .day, value: 10, to: now)!,
+            dailyMinutes: 60, from: now, calendar: calendar
+        )
         let nearThisWeek = near.first { $0.weekStart == thisWeek }
         let farThisWeek = far.first { $0.weekStart == thisWeek }
         XCTAssertNotNil(nearThisWeek)
+        XCTAssertNotNil(farThisWeek)
         XCTAssertEqual(nearThisWeek?.minutes, farThisWeek?.minutes)
+        // The ladder is keyed to the driver, so the top row moves with it.
+        XCTAssertNotEqual(
+            near.first { $0.weekIndex == 0 }!.weekStart,
+            far.first { $0.weekIndex == 0 }!.weekStart
+        )
     }
 
     func testAPlanAlwaysHasAVisibleDriverToPointAt() {

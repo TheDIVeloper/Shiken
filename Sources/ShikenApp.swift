@@ -11,11 +11,29 @@ struct ShikenApp: App {
         // date into a named assessment so no plan silently loses its deadline.
         let schema = Schema([Subject.self, Topic.self, PlanBlock.self, StudySession.self, Assessment.self])
         do {
-            container = try ModelContainer(for: schema)
+            let config = ModelConfiguration(schema: schema, url: Self.storeURL)
+            container = try ModelContainer(for: schema, configurations: [config])
         } catch {
             fatalError("Shiken failed to create its store: \(error)")
         }
         Migration.backfillAssessments(in: container.mainContext)
+    }
+
+    /// Shiken's own store, isolated from the shared `default.store` that every
+    /// other SwiftData app on the machine writes to.
+    ///
+    /// SwiftData's default location is a global file at
+    /// `~/Library/Application Support/default.store`. Any app that does not set
+    /// its own URL uses it, and when two apps with different schemas open it,
+    /// whichever migrates last rebuilds the file and silently drops the other
+    /// app's rows. That is what wiped Shiken's subjects: Boring Notch and Mail
+    /// use the same shared file. This store is named and in its own folder, so
+    /// Shiken data can never be collateral damage again.
+    private static var storeURL: URL {
+        let support = URL.applicationSupportDirectory
+        let folder = support.appendingPathComponent("Shiken", isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return folder.appendingPathComponent("Shiken.store")
     }
 
     var body: some Scene {

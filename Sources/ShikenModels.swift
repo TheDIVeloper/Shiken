@@ -16,6 +16,16 @@ final class Subject {
     /// assessments: the user sets one daily figure and keeps to it across every
     /// assessment in the subject. Assessments are deadlines the plan points at.
     var dailyMinutes: Int = 60
+    /// Lessons a week on the school timetable. Used only to suggest a daily
+    /// figure, because five periods of Physics and one of Italian are not the
+    /// same amount of weekly revision.
+    var periodsPerWeek: Int = 5
+    /// Enrichment drops (Art, Music, Health, PE). Gets a floor rather than zero:
+    /// dropping them completely is how you lose a subject you are examined on.
+    var isEnrichment: Bool = false
+    /// False once the user has moved the daily stepper themselves. The derivation
+    /// only ever fills a default; an explicit choice always wins.
+    var dailyMinutesIsDerived: Bool = false
     var position: Int = 0
     var createdAt: Date = Date.now
 
@@ -25,10 +35,19 @@ final class Subject {
     @Relationship(deleteRule: .cascade, inverse: \Assessment.subject)
     var assessments: [Assessment] = []
 
-    init(name: String, accentHex: String = "9A8C98", dailyMinutes: Int = 60, position: Int = 0) {
+    init(
+        name: String,
+        accentHex: String = "9A8C98",
+        dailyMinutes: Int = 60,
+        periodsPerWeek: Int = 5,
+        isEnrichment: Bool = false,
+        position: Int = 0
+    ) {
         self.name = name
         self.accentHex = accentHex
         self.dailyMinutes = dailyMinutes
+        self.periodsPerWeek = periodsPerWeek
+        self.isEnrichment = isEnrichment
         self.position = position
     }
 

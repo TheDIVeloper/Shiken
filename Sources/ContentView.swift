@@ -15,11 +15,21 @@ struct ContentView: View {
     @Environment(\.modelContext) private var ctx
     @Query(sort: \Subject.position) private var subjects: [Subject]
     @AppStorage("trackInterruptions") private var trackInterruptions = true
+    @AppStorage("totalDailyMinutes") private var totalDailyMinutes = Timetable.defaultTotalDailyMinutes
     @State private var selection: SidebarSelection?
     @State private var showingEditor = false
     @State private var editingSubject: Subject?
     @State private var deletingSubject: Subject?
     @State private var focusTimer = FocusTimer()
+    @State private var undo = ActionUndo()
+
+    /// Every other subject's timetable inputs, so a subject editor can compute
+    /// its suggestion against the whole set.
+    private var timetablePeers: [SubjectPlan] {
+        subjects.map {
+            SubjectPlan(id: $0.id, periodsPerWeek: $0.periodsPerWeek, isEnrichment: $0.isEnrichment)
+        }
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -74,8 +84,13 @@ struct ContentView: View {
             detail
         }
         .environment(focusTimer)
+        .overlay(alignment: .bottom) { undoBanner }
         .sheet(isPresented: $showingEditor) {
-            SubjectEditorSheet(subject: editingSubject) { newID in
+            SubjectEditorSheet(
+                subject: editingSubject,
+                peers: timetablePeers,
+                totalDailyMinutes: totalDailyMinutes
+            ) { newID in
                 selection = .subject(newID)
             }
         }
@@ -173,9 +188,49 @@ struct ContentView: View {
         if case .subject(let id) = selection, id == subject.id {
             selection = nil
         }
-        ctx.delete(subject)
-        try? ctx.save()
+
+        let snapshot = Undoable.snapshot(subject)
+        let wasSelected = selection
+        undo.record(
+            label: "Deleted \(subject.name)",
+            perform: {
+                ctx.delete(subject)
+                try? ctx.save()
+            },
+            revert: {
+                Undoable.restore(snapshot, in: ctx)
+                selection = wasSelected
+            }
+        )
         deletingSubject = nil
+    }
+
+    // MARK: Undo
+
+    /// Reversible confirmation. The banner is the only place in the app that
+    /// mentions a deletion afterwards, and it disappears on its own: an undo
+    /// offer that needs managing is just another notification.
+    @ViewBuilder
+    private var undoBanner: some View {
+        if let message = undo.message {
+            HStack(spacing: DesignSystem.spaceM()) {
+                Text(message)
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if undo.pending != nil {
+                    Button("Undo") { undo.undo() }
+                        .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                }
+            }
+            .padding(.horizontal, DesignSystem.spaceL())
+            .padding(.vertical, DesignSystem.spaceM())
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                    .fill(DesignSystem.panelFill())
+            )
+            .padding(DesignSystem.spaceL())
+        }
     }
 }
 

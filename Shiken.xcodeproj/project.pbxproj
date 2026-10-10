@@ -17,23 +17,33 @@
 		3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */; };
 		4D6EB3BD54D96C481513CD4B /* OverviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0458979F5CEA5B000DD89294 /* OverviewEngine.swift */; };
 		4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
+		4F61BC5B8605C7E079D344CD /* Timetable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998D63667ACA1E7B43989DD2 /* Timetable.swift */; };
 		4FF1BC1F62C8573D7F9F5BC3 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
 		53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
 		55780889CC6D0CC3C586B930 /* Subject+Planning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB36DD482A967056167107B /* Subject+Planning.swift */; };
 		57D9E3C3274BDAD9B9D8C319 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B38CCC4A2D72B94055278 /* SettingsView.swift */; };
+		596633D6B09CD84BBC7149AC /* ReminderSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */; };
 		5B5A59592B5491090B965345 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12AED3EA735071C908795C /* ReviewView.swift */; };
 		5DB6D3B024B90B5D6643E0B6 /* SessionLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */; };
 		67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
+		67901527EFD9649BEEDD9521 /* UndoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4B6FC86FC5088D4A2A5324 /* UndoTests.swift */; };
 		6F0CCE3C33744495717645BD /* SessionLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */; };
+		76EAC2F4A208785732434773 /* BacklogEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54EA3058345B50A5463F5C65 /* BacklogEngineTests.swift */; };
+		78FBD4CBCAF61A94A6B828ED /* UndoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA951AAAA98ABE970F122101 /* UndoManager.swift */; };
 		7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */; };
 		7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
 		83C1A7EDDC77670DDE128987 /* ReviewEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */; };
 		87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
 		8F73D4E347A605E106782EB1 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
 		9006C0D09F41F7CC8EE76AE9 /* Subject+Planning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB36DD482A967056167107B /* Subject+Planning.swift */; };
+		93017693D3FEE81FD0413F40 /* Timetable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998D63667ACA1E7B43989DD2 /* Timetable.swift */; };
 		9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
+		9DAD20300053E9BC6B082255 /* BacklogEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */; };
 		9F53FF6A4686AD3BDCF4D71C /* PlanOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */; };
+		A2010EAD65CC060006C72265 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77494B5E513600EE33C0846 /* ReminderScheduler.swift */; };
 		A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */; };
+		AE9E961BEBF68A55EBD429FC /* BacklogEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */; };
+		AFD409EDE663BB39766B54E3 /* TimetableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EEB655E3419C159534243 /* TimetableTests.swift */; };
 		B2D84D9F27D788C65558134D /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12AED3EA735071C908795C /* ReviewView.swift */; };
 		B7B4AE0E4FCD28975931A7F1 /* PlanOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */; };
 		BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
@@ -44,7 +54,9 @@
 		E68149D9ED26F617452DADAF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B38CCC4A2D72B94055278 /* SettingsView.swift */; };
 		E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
+		F35F441CB1BB2206B67DB1E3 /* UndoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA951AAAA98ABE970F122101 /* UndoManager.swift */; };
 		F7FFA5574FB6612FB2E0F33B /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */; };
+		FF27010E27BA1A0C07D90D25 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77494B5E513600EE33C0846 /* ReminderScheduler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,16 +84,24 @@
 		39A8161439B8D4D40B75CFA0 /* Shiken macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shiken macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D4B38CCC4A2D72B94055278 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectsView.swift; sourceTree = "<group>"; };
+		54EA3058345B50A5463F5C65 /* BacklogEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogEngineTests.swift; sourceTree = "<group>"; };
+		6A4B6FC86FC5088D4A2A5324 /* UndoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoTests.swift; sourceTree = "<group>"; };
 		6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLogView.swift; sourceTree = "<group>"; };
+		76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogEngine.swift; sourceTree = "<group>"; };
 		8BB36DD482A967056167107B /* Subject+Planning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Subject+Planning.swift"; sourceTree = "<group>"; };
+		998D63667ACA1E7B43989DD2 /* Timetable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timetable.swift; sourceTree = "<group>"; };
 		A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
+		A77494B5E513600EE33C0846 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
 		AACF642EDBDE1FC60837DF0C /* Shiken iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Shiken iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2BA4EE1925DE1220042705B /* ShikenModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenModels.swift; sourceTree = "<group>"; };
+		BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderSchedulerTests.swift; sourceTree = "<group>"; };
 		C09996961FCC3572C0289AD6 /* FocusTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimer.swift; sourceTree = "<group>"; };
+		CA951AAAA98ABE970F122101 /* UndoManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoManager.swift; sourceTree = "<group>"; };
 		DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngineTests.swift; sourceTree = "<group>"; };
 		EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewEngineTests.swift; sourceTree = "<group>"; };
 		F3074D790E060616F6B0069D /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		FB12AED3EA735071C908795C /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
+		FD8EEB655E3419C159534243 /* TimetableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -99,9 +119,13 @@
 			isa = PBXGroup;
 			children = (
 				27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */,
+				54EA3058345B50A5463F5C65 /* BacklogEngineTests.swift */,
 				061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */,
 				DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */,
+				BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */,
 				EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */,
+				FD8EEB655E3419C159534243 /* TimetableTests.swift */,
+				6A4B6FC86FC5088D4A2A5324 /* UndoTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -117,6 +141,7 @@
 		88FB9030DDD898B0FEE4E600 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */,
 				16ADCB0F880F1588FFF52907 /* ContentView.swift */,
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
 				C09996961FCC3572C0289AD6 /* FocusTimer.swift */,
@@ -125,6 +150,7 @@
 				1A55A656AD6D69DEE215743E /* PlannerEngine.swift */,
 				1C3015A0AD48FABD017F3E8D /* PlannerView.swift */,
 				1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */,
+				A77494B5E513600EE33C0846 /* ReminderScheduler.swift */,
 				0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */,
 				FB12AED3EA735071C908795C /* ReviewView.swift */,
 				6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */,
@@ -133,6 +159,8 @@
 				B2BA4EE1925DE1220042705B /* ShikenModels.swift */,
 				8BB36DD482A967056167107B /* Subject+Planning.swift */,
 				4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */,
+				998D63667ACA1E7B43989DD2 /* Timetable.swift */,
+				CA951AAAA98ABE970F122101 /* UndoManager.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -266,6 +294,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9DAD20300053E9BC6B082255 /* BacklogEngine.swift in Sources */,
 				1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */,
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
 				87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */,
@@ -274,6 +303,7 @@
 				9F53FF6A4686AD3BDCF4D71C /* PlanOverviewView.swift in Sources */,
 				7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */,
 				C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */,
+				FF27010E27BA1A0C07D90D25 /* ReminderScheduler.swift in Sources */,
 				8F73D4E347A605E106782EB1 /* ReviewEngine.swift in Sources */,
 				5B5A59592B5491090B965345 /* ReviewView.swift in Sources */,
 				5DB6D3B024B90B5D6643E0B6 /* SessionLogView.swift in Sources */,
@@ -282,6 +312,8 @@
 				22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */,
 				55780889CC6D0CC3C586B930 /* Subject+Planning.swift in Sources */,
 				9B81EA448CE61F74956E3703 /* SubjectsView.swift in Sources */,
+				4F61BC5B8605C7E079D344CD /* Timetable.swift in Sources */,
+				F35F441CB1BB2206B67DB1E3 /* UndoManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,9 +322,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */,
+				76EAC2F4A208785732434773 /* BacklogEngineTests.swift in Sources */,
 				DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */,
 				3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */,
+				596633D6B09CD84BBC7149AC /* ReminderSchedulerTests.swift in Sources */,
 				83C1A7EDDC77670DDE128987 /* ReviewEngineTests.swift in Sources */,
+				AFD409EDE663BB39766B54E3 /* TimetableTests.swift in Sources */,
+				67901527EFD9649BEEDD9521 /* UndoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +336,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE9E961BEBF68A55EBD429FC /* BacklogEngine.swift in Sources */,
 				365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */,
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
 				4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */,
@@ -308,6 +345,7 @@
 				B7B4AE0E4FCD28975931A7F1 /* PlanOverviewView.swift in Sources */,
 				F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */,
 				53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */,
+				A2010EAD65CC060006C72265 /* ReminderScheduler.swift in Sources */,
 				4FF1BC1F62C8573D7F9F5BC3 /* ReviewEngine.swift in Sources */,
 				B2D84D9F27D788C65558134D /* ReviewView.swift in Sources */,
 				6F0CCE3C33744495717645BD /* SessionLogView.swift in Sources */,
@@ -316,6 +354,8 @@
 				67686A5188B2FF7747CB99F0 /* ShikenModels.swift in Sources */,
 				9006C0D09F41F7CC8EE76AE9 /* Subject+Planning.swift in Sources */,
 				A35CB579661E125EC332DAF7 /* SubjectsView.swift in Sources */,
+				93017693D3FEE81FD0413F40 /* Timetable.swift in Sources */,
+				78FBD4CBCAF61A94A6B828ED /* UndoManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,7 +488,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -468,7 +508,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -535,7 +575,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -549,7 +589,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

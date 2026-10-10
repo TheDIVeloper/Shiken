@@ -20,6 +20,25 @@ struct PlanOverviewView: View {
     }
 
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
+    @Query private var blocks: [PlanBlock]
+
+    @Environment(\.modelContext) private var ctx
+    @State private var backlog = BacklogModel()
+
+    /// Plan blocks in the backlog's vocabulary.
+    private var backlogBlocks: [BacklogEngine.BacklogBlock] {
+        blocks.compactMap { block in
+            guard let topic = block.topic, let subjectID = topic.subject?.id else { return nil }
+            return BacklogEngine.BacklogBlock(
+                subjectID: subjectID, topicID: topic.id,
+                weekStart: block.weekStart, isDone: block.isDone
+            )
+        }
+    }
+
+    private func loadBacklog() {
+        backlog.load(subjects: inputs, blocks: backlogBlocks)
+    }
 
     private var overview: Overview {
         OverviewEngine.overview(subjects: inputs, days: 7, isDone: doneLookup, actuals: actualRecords)
@@ -74,11 +93,68 @@ struct PlanOverviewView: View {
 
                     if scale == .today { todayList } else { weekGrid }
                 }
+
+                if !backlog.items.isEmpty { backlogSection }
             }
             .padding(DesignSystem.spaceXL())
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Plan")
+        .onAppear(perform: loadBacklog)
+        .onChange(of: blocks.count) { _, _ in loadBacklog() }
+    }
+
+    // MARK: Backlog
+
+    /// A quiet offer, never a total. There is deliberately no "180 minutes
+    /// behind" anywhere in this app: a debt figure is what makes people stop
+    /// opening it. One topic, one tap, and dismissing costs nothing.
+    private var backlogSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
+            ForEach(backlog.items.prefix(3)) { item in
+                HStack(spacing: DesignSystem.spaceM()) {
+                    Circle()
+                        .fill(DesignSystem.hexColor(item.subjectAccentHex))
+                        .frame(width: 8, height: 8)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.title)
+                            .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+                        Text("Picked up from \(item.missedOn.formatted(.dateTime.weekday(.abbreviated)))")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    // No undo banner here: ticking a topic is reversible by
+                    // unticking it, so an undo stack would add a step to fix a
+                    // step. Undo is for actions that destroy work.
+                    Button {
+                        backlog.complete(item, in: ctx)
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        backlog.dismiss(item)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.tertiary)
+                    .help("Not today")
+                }
+                .padding(DesignSystem.spaceM())
+                .background(
+                    RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                        .fill(DesignSystem.panelFill())
+                )
+            }
+        }
     }
 
     // MARK: Header
