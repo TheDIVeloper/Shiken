@@ -10,6 +10,7 @@
 		04CDC29711CDD22689CF1989 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 237BF5EFC78CFE1A0FCC5DCB /* Assets.xcassets */; };
 		1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16ADCB0F880F1588FFF52907 /* ContentView.swift */; };
 		19F7481E04979BE345D80DF2 /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
+		1A3A59697F121A1BE3612BDF /* ErrorLogEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B54D68EEF133CEA265A56F /* ErrorLogEngineTests.swift */; };
 		1D1D9EE46B2478F18E463892 /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */; };
 		22F8415022CA9A176583BC9F /* ShikenModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BA4EE1925DE1220042705B /* ShikenModels.swift */; };
 		358EA09FD1B880720105BAD7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 237BF5EFC78CFE1A0FCC5DCB /* Assets.xcassets */; };
@@ -32,6 +33,7 @@
 		78FBD4CBCAF61A94A6B828ED /* UndoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA951AAAA98ABE970F122101 /* UndoManager.swift */; };
 		7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */; };
 		7BC0491037A54A8463907D41 /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
+		7D2D4C7C68375CD494C97102 /* ErrorLogEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8EA9A171C062503DBD45EB /* ErrorLogEngine.swift */; };
 		83C1A7EDDC77670DDE128987 /* ReviewEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF88D1EDD20B3CC57C3E5CE6 /* ReviewEngineTests.swift */; };
 		87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09996961FCC3572C0289AD6 /* FocusTimer.swift */; };
 		8F73D4E347A605E106782EB1 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
@@ -49,6 +51,7 @@
 		BFB080F075BA46B66185890D /* DayTaskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */; };
 		BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
 		C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
+		C60A18D3095C93D655A99B80 /* ErrorLogEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8EA9A171C062503DBD45EB /* ErrorLogEngine.swift */; };
 		C7E6059F6753A4657BF7F637 /* DayTaskEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B866AC40D4D57EC76A60BF2D /* DayTaskEngineTests.swift */; };
 		CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		CFFDFF56BC62490CFD6190D4 /* DayTaskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */; };
@@ -81,6 +84,7 @@
 		1A55A656AD6D69DEE215743E /* PlannerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerEngine.swift; sourceTree = "<group>"; };
 		1C3015A0AD48FABD017F3E8D /* PlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannerView.swift; sourceTree = "<group>"; };
 		1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanOverviewView.swift; sourceTree = "<group>"; };
+		22B54D68EEF133CEA265A56F /* ErrorLogEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLogEngineTests.swift; sourceTree = "<group>"; };
 		237BF5EFC78CFE1A0FCC5DCB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenApp.swift; sourceTree = "<group>"; };
 		27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssessmentSyncTests.swift; sourceTree = "<group>"; };
@@ -92,6 +96,7 @@
 		6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLogView.swift; sourceTree = "<group>"; };
 		76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogEngine.swift; sourceTree = "<group>"; };
 		8BB36DD482A967056167107B /* Subject+Planning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Subject+Planning.swift"; sourceTree = "<group>"; };
+		8E8EA9A171C062503DBD45EB /* ErrorLogEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLogEngine.swift; sourceTree = "<group>"; };
 		998D63667ACA1E7B43989DD2 /* Timetable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timetable.swift; sourceTree = "<group>"; };
 		A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
 		A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayTaskEngine.swift; sourceTree = "<group>"; };
@@ -126,6 +131,7 @@
 				27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */,
 				54EA3058345B50A5463F5C65 /* BacklogEngineTests.swift */,
 				B866AC40D4D57EC76A60BF2D /* DayTaskEngineTests.swift */,
+				22B54D68EEF133CEA265A56F /* ErrorLogEngineTests.swift */,
 				061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */,
 				DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */,
 				BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */,
@@ -151,6 +157,7 @@
 				16ADCB0F880F1588FFF52907 /* ContentView.swift */,
 				A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */,
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
+				8E8EA9A171C062503DBD45EB /* ErrorLogEngine.swift */,
 				C09996961FCC3572C0289AD6 /* FocusTimer.swift */,
 				A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */,
 				0458979F5CEA5B000DD89294 /* OverviewEngine.swift */,
@@ -305,6 +312,7 @@
 				1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */,
 				BFB080F075BA46B66185890D /* DayTaskEngine.swift in Sources */,
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
+				7D2D4C7C68375CD494C97102 /* ErrorLogEngine.swift in Sources */,
 				87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */,
 				F7FFA5574FB6612FB2E0F33B /* FocusView.swift in Sources */,
 				4D6EB3BD54D96C481513CD4B /* OverviewEngine.swift in Sources */,
@@ -332,6 +340,7 @@
 				7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */,
 				76EAC2F4A208785732434773 /* BacklogEngineTests.swift in Sources */,
 				C7E6059F6753A4657BF7F637 /* DayTaskEngineTests.swift in Sources */,
+				1A3A59697F121A1BE3612BDF /* ErrorLogEngineTests.swift in Sources */,
 				DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */,
 				3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */,
 				596633D6B09CD84BBC7149AC /* ReminderSchedulerTests.swift in Sources */,
@@ -349,6 +358,7 @@
 				365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */,
 				CFFDFF56BC62490CFD6190D4 /* DayTaskEngine.swift in Sources */,
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
+				C60A18D3095C93D655A99B80 /* ErrorLogEngine.swift in Sources */,
 				4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */,
 				1D1D9EE46B2478F18E463892 /* FocusView.swift in Sources */,
 				E48171DC11A6C5B84B8F4BD1 /* OverviewEngine.swift in Sources */,

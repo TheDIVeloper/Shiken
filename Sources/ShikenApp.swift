@@ -9,7 +9,7 @@ struct ShikenApp: App {
         // `examDate` on Subject moved onto Assessment in 0.4. Lightweight
         // migration keeps existing rows; the backfill below turns each old exam
         // date into a named assessment so no plan silently loses its deadline.
-        let schema = Schema([Subject.self, Topic.self, PlanBlock.self, StudySession.self, Assessment.self, DayTask.self])
+        let schema = Schema([Subject.self, Topic.self, PlanBlock.self, StudySession.self, Assessment.self, DayTask.self, RevisionError.self])
         do {
             let config = ModelConfiguration(schema: schema, url: Self.storeURL)
             container = try ModelContainer(for: schema, configurations: [config])

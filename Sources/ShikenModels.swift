@@ -45,6 +45,9 @@ final class Subject {
     @Relationship(deleteRule: .cascade, inverse: \DayTask.subject)
     var dayTasks: [DayTask] = []
 
+    @Relationship(deleteRule: .cascade, inverse: \RevisionError.subject)
+    var revisionErrors: [RevisionError] = []
+
     init(
         name: String,
         accentHex: String = "9A8C98",
@@ -115,7 +118,7 @@ final class Topic {
 final class PlanBlock {
     var id: UUID = UUID()
     var weekIndex: Int = 0
-    /// The Monday (or start of week) this block covers. This — not `weekIndex` —
+    /// The Monday (or start of week) this block covers. This, not `weekIndex`,
     /// is the block's identity, because weekIndex 0 means "the week of whatever
     /// assessment is driving the plan" and that moves when an earlier assessment
     /// passes. Keying on the date means a tick stays on the calendar week the user
@@ -191,6 +194,50 @@ final class DayTask {
         self.plannedMinutesHint = plannedMinutesHint
         self.isAdHoc = isAdHoc
         self.position = position
+        self.subject = subject
+    }
+}
+
+/// An error made during revision or practice, reviewed at spaced intervals until fixed.
+@Model
+final class RevisionError {
+    var id: UUID = UUID()
+    var date: Date = Date.now
+    var categoryRaw: String = "careless_slip"
+    var errorDescription: String = ""
+    var stage: Int = 0
+    var lastReviewedAt: Date? = nil
+    var nextReviewDate: Date = Date.now
+    var isResolved: Bool = false
+    var topicID: UUID? = nil
+    var createdAt: Date = Date.now
+
+    var subject: Subject?
+
+    var category: ErrorCategory {
+        get { ErrorCategory(rawValue: categoryRaw) ?? .carelessSlip }
+        set { categoryRaw = newValue.rawValue }
+    }
+
+    init(
+        date: Date = .now,
+        categoryRaw: String = "careless_slip",
+        errorDescription: String = "",
+        stage: Int = 0,
+        lastReviewedAt: Date? = nil,
+        nextReviewDate: Date = .now,
+        isResolved: Bool = false,
+        topicID: UUID? = nil,
+        subject: Subject? = nil
+    ) {
+        self.date = date
+        self.categoryRaw = categoryRaw
+        self.errorDescription = errorDescription
+        self.stage = stage
+        self.lastReviewedAt = lastReviewedAt
+        self.nextReviewDate = nextReviewDate
+        self.isResolved = isResolved
+        self.topicID = topicID
         self.subject = subject
     }
 }

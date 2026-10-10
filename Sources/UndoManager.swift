@@ -98,6 +98,20 @@ enum Undoable {
         let sessions: [SessionSnapshot]
         let blocks: [BlockSnapshot]
         let dayTasks: [DayTaskSnapshot]
+        let revisionErrors: [RevisionErrorSnapshot]
+    }
+
+    struct RevisionErrorSnapshot {
+        let id: UUID
+        let date: Date
+        let categoryRaw: String
+        let errorDescription: String
+        let stage: Int
+        let lastReviewedAt: Date?
+        let nextReviewDate: Date
+        let isResolved: Bool
+        let topicID: UUID?
+        let createdAt: Date
     }
 
     struct DayTaskSnapshot {
@@ -183,6 +197,14 @@ enum Undoable {
                     topicID: $0.topicID, plannedMinutesHint: $0.plannedMinutesHint,
                     isAdHoc: $0.isAdHoc, position: $0.position, createdAt: $0.createdAt
                 )
+            },
+            revisionErrors: subject.revisionErrors.map {
+                RevisionErrorSnapshot(
+                    id: $0.id, date: $0.date, categoryRaw: $0.categoryRaw,
+                    errorDescription: $0.errorDescription, stage: $0.stage,
+                    lastReviewedAt: $0.lastReviewedAt, nextReviewDate: $0.nextReviewDate,
+                    isResolved: $0.isResolved, topicID: $0.topicID, createdAt: $0.createdAt
+                )
             }
         )
     }
@@ -267,6 +289,23 @@ enum Undoable {
             task.id = taskSnapshot.id
             task.createdAt = taskSnapshot.createdAt
             ctx.insert(task)
+        }
+
+        for errorSnapshot in snapshot.revisionErrors {
+            let error = RevisionError(
+                date: errorSnapshot.date,
+                categoryRaw: errorSnapshot.categoryRaw,
+                errorDescription: errorSnapshot.errorDescription,
+                stage: errorSnapshot.stage,
+                lastReviewedAt: errorSnapshot.lastReviewedAt,
+                nextReviewDate: errorSnapshot.nextReviewDate,
+                isResolved: errorSnapshot.isResolved,
+                topicID: errorSnapshot.topicID,
+                subject: subject
+            )
+            error.id = errorSnapshot.id
+            error.createdAt = errorSnapshot.createdAt
+            ctx.insert(error)
         }
 
         try? ctx.save()
