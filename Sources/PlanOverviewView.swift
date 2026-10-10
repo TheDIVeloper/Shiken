@@ -445,7 +445,11 @@ struct PlanOverviewView: View {
 
                 Spacer()
 
-                if summary.isComplete {
+                if summary.totalTasks == 0 {
+                    Text("No tasks scheduled")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.tertiary)
+                } else if summary.isComplete {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
@@ -468,9 +472,16 @@ struct PlanOverviewView: View {
                 )
             }
 
-            VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
-                ForEach(tasks) { task in
-                    taskRow(task: task, subject: subject)
+            if tasks.isEmpty || tasks.allSatisfy(\.isSynthetic) {
+                Text("No tasks scheduled for this day.")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.tertiary)
+                    .padding(.vertical, 2)
+            } else {
+                VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+                    ForEach(tasks.filter { !$0.isSynthetic }) { task in
+                        taskRow(task: task, subject: subject)
+                    }
                 }
             }
 

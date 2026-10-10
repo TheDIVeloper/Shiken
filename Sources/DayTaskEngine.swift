@@ -123,9 +123,16 @@ enum DayTaskEngine {
             uniquingKeysWith: { first, _ in first }
         )
 
+        let adHocRecords = subjectRecords
+            .filter { $0.isAdHoc }
+            .sorted { $0.position < $1.position }
+
         var result: [DerivedDayTask] = []
 
         for (idx, topic) in topics.enumerated() {
+            if topic.isSynthetic && !adHocRecords.isEmpty {
+                continue
+            }
             let hint = idx < split.count ? split[idx] : 0
             let matched = byTopicID[topic.topicID]
             let isDone = matched?.isDone ?? false
@@ -147,10 +154,6 @@ enum DayTaskEngine {
                 )
             )
         }
-
-        let adHocRecords = subjectRecords
-            .filter { $0.isAdHoc }
-            .sorted { $0.position < $1.position }
 
         for record in adHocRecords {
             result.append(
