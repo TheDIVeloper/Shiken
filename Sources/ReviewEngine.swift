@@ -26,10 +26,41 @@ struct SubjectReview: Equatable, Sendable {
     let plannedMinutes: Int
     let actualMinutes: Int
     let topics: [TopicReview]
+    let isTaskMode: Bool
+    let plannedTasks: Int
+    let completedTasks: Int
+
     var gapMinutes: Int { actualMinutes - plannedMinutes }
+
     var completionPercent: Int {
+        if isTaskMode {
+            guard plannedTasks > 0 else { return 0 }
+            return min(100, Int((Double(completedTasks) / Double(plannedTasks) * 100).rounded()))
+        }
         guard plannedMinutes > 0 else { return 0 }
         return Int((Double(actualMinutes) / Double(plannedMinutes) * 100).rounded())
+    }
+
+    init(
+        subjectID: UUID,
+        name: String,
+        accentHex: String,
+        plannedMinutes: Int,
+        actualMinutes: Int,
+        topics: [TopicReview],
+        isTaskMode: Bool = false,
+        plannedTasks: Int = 0,
+        completedTasks: Int = 0
+    ) {
+        self.subjectID = subjectID
+        self.name = name
+        self.accentHex = accentHex
+        self.plannedMinutes = plannedMinutes
+        self.actualMinutes = actualMinutes
+        self.topics = topics
+        self.isTaskMode = isTaskMode
+        self.plannedTasks = plannedTasks
+        self.completedTasks = completedTasks
     }
 }
 
@@ -70,7 +101,9 @@ enum ReviewEngine {
         sessions: [SessionRecord],
         driver: Date,
         now: Date = .now,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        isTaskMode: Bool = false,
+        taskSummary: DayTaskSummary = DayTaskSummary(totalTasks: 0, completedTasks: 0)
     ) -> SubjectReview {
         let week = currentWeekIndex(driver: driver, now: now, calendar: calendar)
         let inWindow = sessionsInWindow(sessions, subjectID: subjectID, now: now, calendar: calendar)
@@ -90,7 +123,10 @@ enum ReviewEngine {
             accentHex: accentHex,
             plannedMinutes: planned,
             actualMinutes: actual,
-            topics: topicReviews
+            topics: topicReviews,
+            isTaskMode: isTaskMode,
+            plannedTasks: taskSummary.totalTasks,
+            completedTasks: taskSummary.completedTasks
         )
     }
 
@@ -101,20 +137,42 @@ enum ReviewEngine {
         let gap = abs(actual - planned)
         switch ratio {
         case 1...:
-            return "Plan met — \(actual)m done against \(planned)m planned."
+            return "Plan met: \(actual)m done against \(planned)m planned."
         case 0.8..<1:
             return "Close: \(gap)m short of the plan."
         case 0.5..<0.8:
-            return "\(gap)m short — noticeable drift."
+            return "\(gap)m short: noticeable drift."
         default:
             return "Well behind: \(gap)m short. Cut the plan or protect the time."
         }
     }
 
+    static func verdict(review: SubjectReview) -> String {
+        if review.isTaskMode {
+            guard review.plannedTasks > 0 else { return "No tasks planned for this week." }
+            let done = review.completedTasks
+            let planned = review.plannedTasks
+            if done >= planned {
+                return "Plan met: \(done) tasks done against \(planned) planned."
+            } else if done >= (planned * 8 / 10) {
+                return "Close: \(planned - done) tasks short of the plan."
+            } else if done >= (planned / 2) {
+                return "\(planned - done) tasks short: noticeable drift."
+            } else {
+                return "Well behind: \(planned - done) tasks short."
+            }
+        }
+        return verdict(planned: review.plannedMinutes, actual: review.actualMinutes)
+    }
+
     static func letter(for review: SubjectReview, weekOf: Date = .now) -> String {
         var lines: [String] = []
         lines.append("## \(review.name)")
-        lines.append("Planned **\(review.plannedMinutes)m** · Actual **\(review.actualMinutes)m** · \(verdict(planned: review.plannedMinutes, actual: review.actualMinutes))")
+        if review.isTaskMode {
+            lines.append("Tasks: **\(review.completedTasks) done** / **\(review.plannedTasks) planned** · \(verdict(review: review))")
+        } else {
+            lines.append("Planned **\(review.plannedMinutes)m** · Actual **\(review.actualMinutes)m** · \(verdict(planned: review.plannedMinutes, actual: review.actualMinutes))")
+        }
         if !review.topics.isEmpty {
             lines.append("")
             for topic in review.topics {
@@ -128,7 +186,7 @@ enum ReviewEngine {
 
     static func markdown(for reviews: [SubjectReview], weekOf: Date = .now) -> String {
         var lines: [String] = []
-        lines.append("# Shiken — weekly review")
+        lines.append("# Shiken: weekly review")
         lines.append("Week of \(weekOf.formatted(date: .abbreviated, time: .omitted))")
         lines.append("")
         if reviews.isEmpty {

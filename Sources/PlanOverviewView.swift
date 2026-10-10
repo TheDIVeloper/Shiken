@@ -1,11 +1,16 @@
 import SwiftUI
 import SwiftData
 
-/// The cross-subject answer to "what am I doing today?" — the question no
+/// The cross-subject answer to "what am I doing today?": the question no
 /// single subject's plan can answer on its own. Per-subject plans stay
 /// authoritative; this aggregates them without re-weighting anyone's budget.
 struct PlanOverviewView: View {
     @Query(sort: \Subject.position) private var subjects: [Subject]
+    @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
+    @Query private var blocks: [PlanBlock]
+    @Query private var dayTasks: [DayTask]
+
+    @Environment(\.modelContext) private var ctx
 
     private enum Scale: String, CaseIterable, Identifiable {
         case today, week
@@ -14,16 +19,29 @@ struct PlanOverviewView: View {
     }
 
     @State private var scale: Scale = .today
+    @State private var selectedDate: Date = .now
+    @State private var backlog = BacklogModel()
+    @State private var adHocDrafts: [UUID: String] = [:]
 
     private var inputs: [SubjectPlanInput] {
         subjects.map(\.planInput)
     }
 
-    @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
-    @Query private var blocks: [PlanBlock]
-
-    @Environment(\.modelContext) private var ctx
-    @State private var backlog = BacklogModel()
+    private var dayTaskRecords: [DayTaskRecord] {
+        dayTasks.compactMap { task in
+            guard let subjectID = task.subject?.id else { return nil }
+            return DayTaskRecord(
+                id: task.id,
+                subjectID: subjectID,
+                topicID: task.topicID,
+                date: task.date,
+                title: task.title,
+                isDone: task.isDone,
+                isAdHoc: task.isAdHoc,
+                position: task.position
+            )
+        }
+    }
 
     /// Plan blocks in the backlog's vocabulary.
     private var backlogBlocks: [BacklogEngine.BacklogBlock] {
@@ -41,7 +59,14 @@ struct PlanOverviewView: View {
     }
 
     private var overview: Overview {
-        OverviewEngine.overview(subjects: inputs, days: 7, isDone: doneLookup, actuals: actualRecords)
+        let anchor = scale == .today ? selectedDate : .now
+        return OverviewEngine.overview(
+            subjects: inputs,
+            days: 7,
+            from: anchor,
+            isDone: doneLookup,
+            actuals: actualRecords
+        )
     }
 
     /// Sessions in the engine's own vocabulary.
@@ -84,12 +109,7 @@ struct PlanOverviewView: View {
                 } else if overview.days.allSatisfy({ $0.totalMinutes == 0 }) {
                     emptyState
                 } else {
-                    Picker("Scale", selection: $scale) {
-                        ForEach(Scale.allCases) { Text($0.label).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 200)
+                    controlsBar
 
                     if scale == .today { todayList } else { weekGrid }
                 }
@@ -102,6 +122,69 @@ struct PlanOverviewView: View {
         .navigationTitle("Plan")
         .onAppear(perform: loadBacklog)
         .onChange(of: blocks.count) { _, _ in loadBacklog() }
+    }
+
+    // MARK: Controls Bar
+
+    private var controlsBar: some View {
+        HStack(spacing: DesignSystem.spaceM()) {
+            Picker("Scale", selection: $scale) {
+                ForEach(Scale.allCases) { Text($0.label).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 180)
+
+            if scale == .today {
+                dateNavigator
+            }
+
+            Spacer()
+        }
+    }
+
+    private var dateNavigator: some View {
+        HStack(spacing: DesignSystem.spaceS()) {
+            Button {
+                selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) ?? selectedDate
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+            }
+            .buttonStyle(.plain)
+
+            Text(dateDisplayTitle(selectedDate))
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color.primary : Color.secondary)
+
+            Button {
+                selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+            }
+            .buttonStyle(.plain)
+
+            if !Calendar.current.isDateInToday(selectedDate) {
+                Button("Today") {
+                    selectedDate = .now
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                .foregroundStyle(Color.accentColor)
+            }
+        }
+        .padding(.horizontal, DesignSystem.spaceS())
+        .padding(.vertical, DesignSystem.spaceXS())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                .fill(DesignSystem.panelFill())
+        )
+    }
+
+    private func dateDisplayTitle(_ date: Date) -> String {
+        if Calendar.current.isDateInToday(date) { return "Today" }
+        return date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
     }
 
     // MARK: Backlog
@@ -127,9 +210,6 @@ struct PlanOverviewView: View {
 
                     Spacer(minLength: 0)
 
-                    // No undo banner here: ticking a topic is reversible by
-                    // unticking it, so an undo stack would add a step to fix a
-                    // step. Undo is for actions that destroy work.
                     Button {
                         backlog.complete(item, in: ctx)
                     } label: {
@@ -168,7 +248,7 @@ struct PlanOverviewView: View {
                 .foregroundStyle(.secondary)
             if !overview.excluded.isEmpty {
                 Label(
-                    "Not planned — no assessment dated: \(overview.excluded.joined(separator: ", "))",
+                    "Not planned: no assessment dated: \(overview.excluded.joined(separator: ", "))",
                     systemImage: "exclamationmark.triangle"
                 )
                 .font(.system(size: DesignSystem.typeCaption()))
@@ -186,15 +266,36 @@ struct PlanOverviewView: View {
     }
 
     private var todaySubtitle: String {
-        guard let day = overview.today else { return "Nothing scheduled today." }
+        guard let day = overview.today else { return "Nothing scheduled for this date." }
+        let isToday = Calendar.current.isDateInToday(selectedDate)
+        let dayPrefix = isToday ? "Today" : selectedDate.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
         let total = day.totalMinutes
-        guard total > 0 else { return "Nothing scheduled today." }
         let count = day.subjects.count
         let subjectNoun = count == 1 ? "subject" : "subjects"
-        if day.isMet {
-            return "Target met — \(day.actualMinutes)m against \(total)m planned across \(count) \(subjectNoun)."
+
+        let taskSubjects = subjects.filter { $0.dayMode == .tasks }
+        if !taskSubjects.isEmpty && taskSubjects.count == subjects.count {
+            let allTasks = taskSubjects.flatMap { subj -> [DerivedDayTask] in
+                guard let planned = day.subjects.first(where: { $0.subjectID == subj.id }) else { return [] }
+                return DayTaskEngine.tasksForDay(
+                    subject: subj.planInput,
+                    driver: AssessmentRef(id: planned.driver.id, title: planned.driver.title, date: planned.driver.date),
+                    date: selectedDate,
+                    persisted: dayTaskRecords
+                )
+            }
+            let summary = DayTaskEngine.summary(tasks: allTasks)
+            if summary.isComplete {
+                return "\(dayPrefix): all \(summary.totalTasks) tasks completed across \(count) \(subjectNoun)."
+            }
+            return "\(dayPrefix): \(summary.completedTasks) of \(summary.totalTasks) tasks done across \(count) \(subjectNoun) · \(summary.remainingTasks) to go."
         }
-        return "\(day.actualMinutes)m of \(total)m across \(count) \(subjectNoun) · \(day.remainingMinutes)m to go."
+
+        guard total > 0 else { return "Nothing scheduled for \(dayPrefix.lowercased())." }
+        if day.isMet {
+            return "\(dayPrefix): target met, \(day.actualMinutes)m against \(total)m planned across \(count) \(subjectNoun)."
+        }
+        return "\(dayPrefix): \(day.actualMinutes)m of \(total)m across \(count) \(subjectNoun) · \(day.remainingMinutes)m to go."
     }
 
     /// Thin determinate bar. Only ever shown for a day in progress, so it
@@ -218,24 +319,238 @@ struct PlanOverviewView: View {
     }
 
     private var emptyState: some View {
-        Text("Add a subject and give it an assessment to revise for — this fills in.")
+        Text("Add a subject and give it an assessment to revise for: this fills in.")
             .font(.system(size: DesignSystem.typeBody()))
             .foregroundStyle(.secondary)
     }
 
-    // MARK: Today
+    // MARK: Today List
 
     private var todayList: some View {
         VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
             if let day = overview.today {
                 ForEach(day.subjects) { planned in
-                    subjectCard(planned, day: day)
+                    if let subject = subjects.first(where: { $0.id == planned.subjectID }) {
+                        if subject.dayMode == .tasks {
+                            taskSubjectCard(subject: subject, planned: planned, day: day)
+                        } else {
+                            timeSubjectCard(subject: subject, planned: planned, day: day)
+                        }
+                    }
                 }
             }
         }
     }
 
-    private func subjectCard(_ planned: PlannedSubject, day: OverviewDay) -> some View {
+    // MARK: Task Mode Subject Card
+
+    private func taskSubjectCard(subject: Subject, planned: PlannedSubject, day: OverviewDay) -> some View {
+        let accent = DesignSystem.hexColor(planned.accentHex)
+        let tasks = DayTaskEngine.tasksForDay(
+            subject: subject.planInput,
+            driver: AssessmentRef(id: planned.driver.id, title: planned.driver.title, date: planned.driver.date),
+            date: selectedDate,
+            persisted: dayTaskRecords
+        )
+        let summary = DayTaskEngine.summary(tasks: tasks)
+
+        return VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
+            HStack {
+                Circle().fill(accent).frame(width: 8, height: 8)
+                Text(planned.name)
+                    .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
+
+                Text("Task checklist")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Color.secondary.opacity(0.12)))
+
+                Spacer()
+
+                if summary.isComplete {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("All done (\(summary.totalTasks))")
+                            .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
+                            .foregroundStyle(.green)
+                    }
+                } else {
+                    Text("\(summary.completedTasks)/\(summary.totalTasks) tasks")
+                        .font(.system(size: DesignSystem.typeBody(), weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(accent)
+                }
+            }
+
+            if !summary.isComplete && summary.totalTasks > 0 {
+                progressBar(
+                    fraction: summary.completionPercent,
+                    detail: "\(summary.completedTasks) of \(summary.totalTasks) tasks · \(summary.remainingTasks) to go"
+                )
+            }
+
+            VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
+                ForEach(tasks) { task in
+                    taskRow(task: task, subject: subject)
+                }
+            }
+
+            adHocInputRow(for: subject)
+
+            HStack(spacing: DesignSystem.spaceM()) {
+                Text("\(planned.driver.title) \(planned.driver.date.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.tertiary)
+                if let next = planned.upcoming.first {
+                    Text("then \(next.title) \(next.date.formatted(date: .abbreviated, time: .omitted))")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.tertiary)
+                        .help("Planned after \(planned.driver.title): not shaping the plan yet")
+                }
+                if summary.isComplete {
+                    Label("Completed for this day", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.green)
+                }
+            }
+        }
+        .padding(DesignSystem.spaceM())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                .fill(DesignSystem.panelFill())
+        )
+    }
+
+    private func taskRow(task: DerivedDayTask, subject: Subject) -> some View {
+        HStack(spacing: DesignSystem.spaceS()) {
+            Button {
+                toggleTask(task, subject: subject)
+            } label: {
+                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: DesignSystem.typeBody()))
+                    .foregroundStyle(task.isDone ? DesignSystem.hexColor(subject.accentHex) : Color.secondary)
+            }
+            .buttonStyle(.plain)
+
+            Text(task.title)
+                .font(.system(size: DesignSystem.typeBody()))
+                .strikethrough(task.isDone, color: .secondary)
+                .foregroundStyle(task.isDone ? .secondary : .primary)
+
+            Spacer()
+
+            if task.plannedMinutesHint > 0 {
+                Text("≈ \(task.plannedMinutesHint)m guide")
+                    .font(.system(size: DesignSystem.typeCaption(), design: .monospaced))
+                    .foregroundStyle(.tertiary)
+            }
+
+            if task.isAdHoc {
+                Text("Ad hoc")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(Color.secondary.opacity(0.12)))
+
+                Button {
+                    deleteAdHoc(task)
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: DesignSystem.typeCaption()))
+                        .foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func adHocInputRow(for subject: Subject) -> some View {
+        HStack(spacing: DesignSystem.spaceS()) {
+            Image(systemName: "plus.circle")
+                .font(.system(size: DesignSystem.typeCaption()))
+                .foregroundStyle(.tertiary)
+
+            TextField("Add ad hoc task for today...", text: Binding(
+                get: { adHocDrafts[subject.id] ?? "" },
+                set: { adHocDrafts[subject.id] = $0 }
+            ))
+            .textFieldStyle(.plain)
+            .font(.system(size: DesignSystem.typeCaption()))
+            .onSubmit {
+                submitAdHoc(for: subject)
+            }
+
+            if let draft = adHocDrafts[subject.id], !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Button("Add") {
+                    submitAdHoc(for: subject)
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                .foregroundStyle(DesignSystem.hexColor(subject.accentHex))
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func submitAdHoc(for subject: Subject) {
+        let text = (adHocDrafts[subject.id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        let dayStart = DayTaskEngine.normalizeDate(selectedDate)
+        let maxPos = dayTasks
+            .filter { $0.subject?.id == subject.id && Calendar.current.isDate($0.date, inSameDayAs: dayStart) }
+            .map(\.position)
+            .max() ?? 0
+
+        let adHoc = DayTask(
+            date: dayStart,
+            title: text,
+            isDone: false,
+            topicID: nil,
+            plannedMinutesHint: 0,
+            isAdHoc: true,
+            position: maxPos + 1,
+            subject: subject
+        )
+        ctx.insert(adHoc)
+        try? ctx.save()
+        adHocDrafts[subject.id] = ""
+    }
+
+    private func toggleTask(_ task: DerivedDayTask, subject: Subject) {
+        let dayStart = DayTaskEngine.normalizeDate(selectedDate)
+        if let recordID = task.taskRecordID,
+           let existing = dayTasks.first(where: { $0.id == recordID }) {
+            existing.isDone.toggle()
+        } else {
+            let record = DayTask(
+                date: dayStart,
+                title: task.title,
+                isDone: true,
+                topicID: task.topicID,
+                plannedMinutesHint: task.plannedMinutesHint,
+                isAdHoc: task.isAdHoc,
+                position: 0,
+                subject: subject
+            )
+            ctx.insert(record)
+        }
+        try? ctx.save()
+    }
+
+    private func deleteAdHoc(_ task: DerivedDayTask) {
+        guard let recordID = task.taskRecordID,
+              let existing = dayTasks.first(where: { $0.id == recordID }) else { return }
+        ctx.delete(existing)
+        try? ctx.save()
+    }
+
+    // MARK: Time Mode Subject Card
+
+    private func timeSubjectCard(subject: Subject, planned: PlannedSubject, day: OverviewDay) -> some View {
         let accent = DesignSystem.hexColor(planned.accentHex)
         return VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
             HStack {
@@ -283,7 +598,7 @@ struct PlanOverviewView: View {
                     Text("then \(next.title) \(next.date.formatted(date: .abbreviated, time: .omitted))")
                         .font(.system(size: DesignSystem.typeCaption()))
                         .foregroundStyle(.tertiary)
-                        .help("Planned after \(planned.driver.title) — not shaping the plan yet")
+                        .help("Planned after \(planned.driver.title): not shaping the plan yet")
                 }
                 if day.dayIndex == 0, planned.actualMinutes > 0, !planned.isMet {
                     Text("\(planned.actualMinutes)m logged today")
@@ -305,7 +620,7 @@ struct PlanOverviewView: View {
         )
     }
 
-    // MARK: Week
+    // MARK: Week Grid
 
     private var weekGrid: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -323,7 +638,7 @@ struct PlanOverviewView: View {
     }
 
     private func dayColumn(_ day: OverviewDay) -> some View {
-        let isToday = day.dayIndex == 0
+        let isToday = Calendar.current.isDateInToday(day.date)
         let width: CGFloat = 132
 
         return VStack(alignment: .leading, spacing: DesignSystem.spaceS()) {
@@ -351,11 +666,14 @@ struct PlanOverviewView: View {
             Divider()
 
             if day.subjects.isEmpty {
-                Text("—")
+                Text("None")
                     .font(.system(size: DesignSystem.typeCaption()))
                     .foregroundStyle(.tertiary)
             } else {
                 ForEach(day.subjects) { planned in
+                    let subject = subjects.first(where: { $0.id == planned.subjectID })
+                    let isTaskMode = subject?.dayMode == .tasks
+
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 5) {
                             Circle()
@@ -365,12 +683,27 @@ struct PlanOverviewView: View {
                                 .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
                                 .lineLimit(1)
                         }
-                        ForEach(planned.entries) { entry in
-                            Text(entry.isSynthetic ? "\(entry.minutes)m" : "\(entry.minutes)m \(entry.title)")
+
+                        if isTaskMode, let subject {
+                            let tasks = DayTaskEngine.tasksForDay(
+                                subject: subject.planInput,
+                                driver: AssessmentRef(id: planned.driver.id, title: planned.driver.title, date: planned.driver.date),
+                                date: day.date,
+                                persisted: dayTaskRecords
+                            )
+                            let sum = DayTaskEngine.summary(tasks: tasks)
+                            Text("\(sum.completedTasks)/\(sum.totalTasks) tasks")
                                 .font(.system(size: DesignSystem.typeCaption()))
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
+                                .foregroundStyle(sum.isComplete ? .green : .secondary)
                                 .padding(.leading, 11)
+                        } else {
+                            ForEach(planned.entries) { entry in
+                                Text(entry.isSynthetic ? "\(entry.minutes)m" : "\(entry.minutes)m \(entry.title)")
+                                    .font(.system(size: DesignSystem.typeCaption()))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .padding(.leading, 11)
+                            }
                         }
                     }
                 }

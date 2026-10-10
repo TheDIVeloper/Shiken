@@ -59,6 +59,7 @@ struct SubjectEditorSheet: View {
     @State private var periodsPerWeek: Int
     @State private var isEnrichment: Bool
     @State private var dailyMinutesIsDerived: Bool
+    @State private var dayModeRaw: String
     /// Timetable inputs for the other subjects, so this subject's suggestion is
     /// computed against the whole set rather than in isolation.
     @State private var peerTimetable: [SubjectPlan]
@@ -102,6 +103,7 @@ struct SubjectEditorSheet: View {
             _periodsPerWeek = State(initialValue: subject.periodsPerWeek)
             _isEnrichment = State(initialValue: subject.isEnrichment)
             _dailyMinutesIsDerived = State(initialValue: subject.dailyMinutesIsDerived)
+            _dayModeRaw = State(initialValue: subject.dayModeRaw)
             // A derived subject follows the timetable until the user overrides it.
             _dailyMinutes = State(initialValue: subject.dailyMinutesIsDerived
                 ? derived[subject.id] ?? subject.dailyMinutes
@@ -115,6 +117,7 @@ struct SubjectEditorSheet: View {
             _periodsPerWeek = State(initialValue: 5)
             _isEnrichment = State(initialValue: false)
             _dailyMinutesIsDerived = State(initialValue: true)
+            _dayModeRaw = State(initialValue: "time")
             _dailyMinutes = State(initialValue: Timetable.defaultTotalDailyMinutes)
             _accentHex = State(initialValue: DesignSystem.subjectAccent())
             _drafts = State(initialValue: [
@@ -134,7 +137,20 @@ struct SubjectEditorSheet: View {
                     TextField("Subject name", text: $name)
                 }
                 Section {
-                    Stepper("Daily target \(dailyMinutes) min", value: $dailyMinutes, in: 15...240, step: 15)
+                    Picker("Daily mode", selection: $dayModeRaw) {
+                        ForEach(DayMode.allCases, id: \.rawValue) { mode in
+                            Text(mode.label).tag(mode.rawValue)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    rowCaption(
+                        dayModeRaw == "tasks"
+                        ? "Task checklist: daily completion is measured by ticking off each topic's task for the day. Minutes are kept only as a guide."
+                        : "Time budget: daily completion is measured by focused minutes logged against your daily target."
+                    )
+
+                    Stepper(dayModeRaw == "tasks" ? "Daily guide \(dailyMinutes) min" : "Daily target \(dailyMinutes) min", value: $dailyMinutes, in: 15...240, step: 15)
                         .onChange(of: dailyMinutes) { _, _ in
                             // Any deliberate move to the stepper means the user has
                             // decided; stop re-deriving over the top of them.
@@ -355,6 +371,7 @@ struct SubjectEditorSheet: View {
             subject.periodsPerWeek = periodsPerWeek
             subject.isEnrichment = isEnrichment
             subject.dailyMinutesIsDerived = dailyMinutesIsDerived
+            subject.dayModeRaw = dayModeRaw
             target = subject
         } else {
             let position = (try? ctx.fetchCount(FetchDescriptor<Subject>())) ?? 0
@@ -363,6 +380,7 @@ struct SubjectEditorSheet: View {
             created.periodsPerWeek = periodsPerWeek
             created.isEnrichment = isEnrichment
             created.dailyMinutesIsDerived = dailyMinutesIsDerived
+            created.dayModeRaw = dayModeRaw
             ctx.insert(created)
             target = created
         }

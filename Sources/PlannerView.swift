@@ -36,7 +36,7 @@ struct PlannerView: View {
     }
 
     /// Real topics if there are any, otherwise a single stand-in row for the
-    /// subject as a whole. Purely derived — nothing is written to SwiftData.
+    /// subject as a whole. Purely derived: nothing is written to SwiftData.
     private var inputs: [TopicPlan] {
         PlannerEngine.effectiveTopics(
             subjectID: subject.id,
@@ -93,18 +93,28 @@ struct PlannerView: View {
     }
 
     // MARK: Header
-
+ 
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
-                Text(subject.name)
-                    .font(.system(size: DesignSystem.typeDisplay(), weight: .semibold))
+                HStack(spacing: DesignSystem.spaceS()) {
+                    Text(subject.name)
+                        .font(.system(size: DesignSystem.typeDisplay(), weight: .semibold))
+                    if subject.dayMode == .tasks {
+                        Text("Task checklist")
+                            .font(.system(size: DesignSystem.typeCaption()))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.secondary.opacity(0.12)))
+                    }
+                }
                 if let driver {
                     Text(driverLine)
                         .font(.system(size: DesignSystem.typeBody()))
                         .foregroundStyle(.secondary)
                 } else if subject.isFinished {
-                    Text("All assessments done — \(subject.name) is finished.")
+                    Text("All assessments done: \(subject.name) is finished.")
                         .font(.system(size: DesignSystem.typeBody()))
                         .foregroundStyle(.secondary)
                 } else {
@@ -114,7 +124,12 @@ struct PlannerView: View {
                 }
             }
             Spacer()
-            Stepper("\(subject.dailyMinutes) min/day", value: $subject.dailyMinutes, in: 15...240, step: 15)
+            Stepper(
+                subject.dayMode == .tasks ? "≈ \(subject.dailyMinutes) m/day guide" : "\(subject.dailyMinutes) min/day",
+                value: $subject.dailyMinutes,
+                in: 15...240,
+                step: 15
+            )
         }
     }
 
@@ -176,7 +191,7 @@ struct PlannerView: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("Priorities are relative — dials are scaled to fill exactly \(subject.dailyMinutes)min/day · \(subject.dailyMinutes * 7)min/wk across all topics; the coloured % shows the effective split.")
+            Text("Priorities are relative: dials are scaled to fill exactly \(subject.dailyMinutes)min/day · \(subject.dailyMinutes * 7)min/wk across all topics; the coloured % shows the effective split.")
                 .font(.system(size: DesignSystem.typeCaption()))
                 .foregroundStyle(.tertiary)
         }
@@ -308,10 +323,42 @@ struct PlannerView: View {
         return max(1, min(7, days + 1))
     }
 
+    private func dateFor(day: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: day, to: Calendar.current.startOfDay(for: .now)) ?? .now
+    }
+
+    private func dayTaskRecordFor(topicID: UUID, day: Int) -> DayTask? {
+        let date = dateFor(day: day)
+        return subject.dayTasks.first {
+            $0.topicID == topicID && Calendar.current.isDate($0.date, inSameDayAs: date)
+        }
+    }
+
+    private func toggleDailyTopicTask(topicID: UUID, title: String, day: Int, hint: Int) {
+        let date = dateFor(day: day)
+        if let existing = dayTaskRecordFor(topicID: topicID, day: day) {
+            existing.isDone.toggle()
+        } else {
+            let record = DayTask(
+                date: date,
+                title: title,
+                isDone: true,
+                topicID: topicID,
+                plannedMinutesHint: hint,
+                isAdHoc: false,
+                position: 0,
+                subject: subject
+            )
+            ctx.insert(record)
+        }
+        try? ctx.save()
+    }
+
     private func dayColumn(_ day: Int, distribution: [[Int]]) -> some View {
         let isToday = day == 0
         let width = GridMetrics.daily.column
         let columnTotal = inputs.indices.reduce(0) { $0 + distribution[$1][day] }
+        let isTaskMode = subject.dayMode == .tasks
 
         return VStack(alignment: .center, spacing: 0) {
             Text(dayLabel(day))
@@ -321,19 +368,54 @@ struct PlannerView: View {
                 .frame(width: width, height: GridMetrics.daily.header, alignment: .center)
 
             ForEach(inputs.indices, id: \.self) { index in
-                Text("\(distribution[index][day])")
-                    .font(.system(size: DesignSystem.typeBody(), weight: .medium))
-                    .frame(width: width, height: GridMetrics.daily.cell, alignment: .center)
-                    .background(
-                        RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
-                            .fill(isToday ? DesignSystem.hexColor(subject.accentHex).opacity(0.1) : Color.clear)
-                    )
+                let plan = inputs[index]
+                let minutes = distribution[index][day]
+                if isTaskMode && !plan.isSynthetic {
+                    let task = dayTaskRecordFor(topicID: plan.topicID, day: day)
+                    let isDone = task?.isDone ?? false
+                    Button {
+                        toggleDailyTopicTask(topicID: plan.topicID, title: plan.title, day: day, hint: minutes)
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: DesignSystem.typeCaption()))
+                                .foregroundStyle(isDone ? DesignSystem.hexColor(subject.accentHex) : Color.secondary)
+                            Text("\(minutes)m")
+                                .font(.system(size: DesignSystem.typeCaption(), design: .monospaced))
+                                .foregroundStyle(isDone ? Color.secondary : Color.primary)
+                                .strikethrough(isDone, color: .secondary)
+                        }
+                        .frame(width: width, height: GridMetrics.daily.cell, alignment: .center)
+                        .background(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                                .fill(isDone ? DesignSystem.hexColor(subject.accentHex).opacity(0.14) : Color.clear)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("\(minutes)")
+                        .font(.system(size: DesignSystem.typeBody(), weight: .medium))
+                        .frame(width: width, height: GridMetrics.daily.cell, alignment: .center)
+                        .background(
+                            RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
+                                .fill(isToday ? DesignSystem.hexColor(subject.accentHex).opacity(0.1) : Color.clear)
+                        )
+                }
             }
 
-            Text("\(columnTotal)m")
-                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
-                .foregroundStyle(.secondary)
-                .frame(width: width, height: GridMetrics.daily.footer, alignment: .center)
+            if isTaskMode {
+                let completed = inputs.filter { !$0.isSynthetic && dayTaskRecordFor(topicID: $0.topicID, day: day)?.isDone == true }.count
+                let total = inputs.filter { !$0.isSynthetic }.count
+                Text(total > 0 && completed >= total ? "Done ✓" : "\(completed)/\(total)")
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                    .foregroundStyle(total > 0 && completed >= total ? Color.green : Color.secondary)
+                    .frame(width: width, height: GridMetrics.daily.footer, alignment: .center)
+            } else {
+                Text("\(columnTotal)m")
+                    .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: width, height: GridMetrics.daily.footer, alignment: .center)
+            }
         }
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.radiusS(), style: .continuous)
@@ -462,7 +544,7 @@ struct PlannerView: View {
 
         var wanted = Set<PlanKey>()
         for scheduled in PlannerEngine.schedule(topics: inputs, driver: driver.date, dailyMinutes: subject.dailyMinutes) {
-            // A stand-in row is derived, not stored — there is no Topic to hang a
+            // A stand-in row is derived, not stored: there is no Topic to hang a
             // PlanBlock off, and inventing one would manufacture data on disk.
             guard realTopicIDs.contains(scheduled.topicID) else { continue }
             let key = PlanKey(topicID: scheduled.topicID, weekStart: scheduled.weekStart)

@@ -83,7 +83,28 @@ final class ReviewEngineTests: XCTestCase {
         XCTAssertTrue(letter.contains("Waves"))
 
         let markdown = ReviewEngine.markdown(for: [review])
-        XCTAssertTrue(markdown.hasPrefix("# Shiken — weekly review"))
+        XCTAssertTrue(markdown.hasPrefix("# Shiken: weekly review"))
         XCTAssertTrue(markdown.contains("Physics"))
+    }
+
+    func testTaskModeReviewAggregatesTasksAndVerdict() {
+        let subject = UUID()
+        let topic = UUID()
+        let taskReview = SubjectReview(
+            subjectID: subject,
+            name: "Literature",
+            accentHex: "5B7B8C",
+            plannedMinutes: 200,
+            actualMinutes: 0,
+            topics: [TopicReview(topicID: topic, title: "Macbeth", plannedMinutes: 200, actualMinutes: 0)],
+            isTaskMode: true,
+            plannedTasks: 5,
+            completedTasks: 5
+        )
+        XCTAssertEqual(taskReview.completionPercent, 100)
+        let verdict = ReviewEngine.verdict(review: taskReview)
+        XCTAssertTrue(verdict.contains("5 tasks done"))
+        let letter = ReviewEngine.letter(for: taskReview)
+        XCTAssertTrue(letter.contains("5 done"))
     }
 }

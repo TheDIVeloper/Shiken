@@ -4,6 +4,23 @@ import SwiftData
 struct ReviewView: View {
     @Query(sort: \Subject.position) private var subjects: [Subject]
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
+    @Query private var dayTasks: [DayTask]
+
+    private var dayTaskRecords: [DayTaskRecord] {
+        dayTasks.compactMap { task in
+            guard let subjectID = task.subject?.id else { return nil }
+            return DayTaskRecord(
+                id: task.id,
+                subjectID: subjectID,
+                topicID: task.topicID,
+                date: task.date,
+                title: task.title,
+                isDone: task.isDone,
+                isAdHoc: task.isAdHoc,
+                position: task.position
+            )
+        }
+    }
 
     private var records: [SessionRecord] {
         sessions.map {
@@ -25,6 +42,11 @@ struct ReviewView: View {
                 subjectID: subject.id, subjectName: subject.name, topics: subject.topicPlans
             )
             let plan = PlannerEngine.schedule(topics: topics, driver: next.date, dailyMinutes: subject.dailyMinutes)
+            let taskSummary = DayTaskEngine.windowSummary(
+                subject: subject.planInput,
+                driver: AssessmentRef(id: next.id, title: next.title, date: next.date),
+                persisted: dayTaskRecords
+            )
             return ReviewEngine.review(
                 subjectID: subject.id,
                 name: subject.name,
@@ -32,7 +54,9 @@ struct ReviewView: View {
                 topics: topics,
                 plan: plan,
                 sessions: records,
-                driver: next.date
+                driver: next.date,
+                isTaskMode: subject.dayMode == .tasks,
+                taskSummary: taskSummary
             )
         }
     }
@@ -115,8 +139,13 @@ private struct SubjectReviewCard: View {
             }
 
             HStack(alignment: .firstTextBaseline, spacing: DesignSystem.spaceXL()) {
-                metric(value: "\(review.plannedMinutes)", label: "planned")
-                metric(value: "\(review.actualMinutes)", label: "actual")
+                if review.isTaskMode {
+                    metric(value: "\(review.plannedTasks)", label: "tasks planned")
+                    metric(value: "\(review.completedTasks)", label: "tasks done")
+                } else {
+                    metric(value: "\(review.plannedMinutes)", label: "planned")
+                    metric(value: "\(review.actualMinutes)", label: "actual")
+                }
                 metric(value: "\(review.completionPercent)%", label: "of plan")
                 Spacer()
             }
@@ -139,6 +168,17 @@ private struct SubjectReviewCard: View {
     }
 
     private var gapChip: some View {
+        if review.isTaskMode {
+            let left = review.plannedTasks - review.completedTasks
+            let text = left <= 0 ? "all tasks done" : "\(left) tasks to go"
+            let color: Color = left <= 0 ? accent : .red
+            return Text(text)
+                .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
+                .foregroundStyle(color)
+                .padding(.horizontal, DesignSystem.spaceS())
+                .padding(.vertical, DesignSystem.spaceXS())
+                .background(Capsule().fill(color.opacity(0.12)))
+        }
         let gap = review.gapMinutes
         let text = gap == 0 ? "on plan" : (gap > 0 ? "+\(gap)m" : "\(gap)m")
         let color: Color = gap >= 0 ? accent : .red
@@ -151,9 +191,16 @@ private struct SubjectReviewCard: View {
     }
 
     private var ratioBar: some View {
-        let ratio = review.plannedMinutes > 0
-            ? min(1.5, Double(review.actualMinutes) / Double(review.plannedMinutes))
-            : 0
+        let ratio: Double
+        if review.isTaskMode {
+            ratio = review.plannedTasks > 0
+                ? min(1.5, Double(review.completedTasks) / Double(review.plannedTasks))
+                : 0
+        } else {
+            ratio = review.plannedMinutes > 0
+                ? min(1.5, Double(review.actualMinutes) / Double(review.plannedMinutes))
+                : 0
+        }
         return GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(DesignSystem.hairline())
