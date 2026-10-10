@@ -97,6 +97,19 @@ enum Undoable {
         let assessments: [AssessmentSnapshot]
         let sessions: [SessionSnapshot]
         let blocks: [BlockSnapshot]
+        let dayTasks: [DayTaskSnapshot]
+    }
+
+    struct DayTaskSnapshot {
+        let id: UUID
+        let date: Date
+        let title: String
+        let isDone: Bool
+        let topicID: UUID?
+        let plannedMinutesHint: Int
+        let isAdHoc: Bool
+        let position: Int
+        let createdAt: Date
     }
 
     struct TopicSnapshot {
@@ -163,6 +176,13 @@ enum Undoable {
                         targetMinutes: $0.targetMinutes, isDone: $0.isDone
                     )
                 }
+            },
+            dayTasks: subject.dayTasks.map {
+                DayTaskSnapshot(
+                    id: $0.id, date: $0.date, title: $0.title, isDone: $0.isDone,
+                    topicID: $0.topicID, plannedMinutesHint: $0.plannedMinutesHint,
+                    isAdHoc: $0.isAdHoc, position: $0.position, createdAt: $0.createdAt
+                )
             }
         )
     }
@@ -179,6 +199,7 @@ enum Undoable {
             dailyMinutes: snapshot.subject.dailyMinutes,
             periodsPerWeek: snapshot.subject.periodsPerWeek,
             isEnrichment: snapshot.subject.isEnrichment,
+            dayModeRaw: snapshot.subject.dayModeRaw,
             position: snapshot.position
         )
         subject.id = snapshot.subject.id
@@ -230,6 +251,22 @@ enum Undoable {
             session.subject = subject
             session.topic = topic
             ctx.insert(session)
+        }
+
+        for taskSnapshot in snapshot.dayTasks {
+            let task = DayTask(
+                date: taskSnapshot.date,
+                title: taskSnapshot.title,
+                isDone: taskSnapshot.isDone,
+                topicID: taskSnapshot.topicID,
+                plannedMinutesHint: taskSnapshot.plannedMinutesHint,
+                isAdHoc: taskSnapshot.isAdHoc,
+                position: taskSnapshot.position,
+                subject: subject
+            )
+            task.id = taskSnapshot.id
+            task.createdAt = taskSnapshot.createdAt
+            ctx.insert(task)
         }
 
         try? ctx.save()

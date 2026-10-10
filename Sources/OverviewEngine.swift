@@ -15,16 +15,22 @@ struct SubjectPlanInput: Equatable, Sendable {
     let name: String
     let accentHex: String
     let dailyMinutes: Int
+    let dayModeRaw: String
     let topics: [TopicPlan]
     /// Every dated thing this subject is revised for. The plan is driven by the
     /// next one still ahead; the rest show up as markers only.
     let assessments: [AssessmentRef]
+
+    var dayMode: DayMode {
+        DayMode(rawValue: dayModeRaw) ?? .time
+    }
 
     init(
         id: UUID,
         name: String,
         accentHex: String,
         dailyMinutes: Int,
+        dayModeRaw: String = "time",
         topics: [TopicPlan],
         assessments: [AssessmentRef]
     ) {
@@ -32,6 +38,7 @@ struct SubjectPlanInput: Equatable, Sendable {
         self.name = name
         self.accentHex = accentHex
         self.dailyMinutes = dailyMinutes
+        self.dayModeRaw = dayModeRaw
         self.topics = topics
         self.assessments = assessments
     }

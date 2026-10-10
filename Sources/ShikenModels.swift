@@ -26,8 +26,15 @@ final class Subject {
     /// False once the user has moved the daily stepper themselves. The derivation
     /// only ever fills a default; an explicit choice always wins.
     var dailyMinutesIsDerived: Bool = false
+    /// Whether daily revision is measured by a time budget or ticking off tasks.
+    var dayModeRaw: String = "time"
     var position: Int = 0
     var createdAt: Date = Date.now
+
+    var dayMode: DayMode {
+        get { DayMode(rawValue: dayModeRaw) ?? .time }
+        set { dayModeRaw = newValue.rawValue }
+    }
 
     @Relationship(deleteRule: .cascade, inverse: \Topic.subject)
     var topics: [Topic] = []
@@ -35,12 +42,16 @@ final class Subject {
     @Relationship(deleteRule: .cascade, inverse: \Assessment.subject)
     var assessments: [Assessment] = []
 
+    @Relationship(deleteRule: .cascade, inverse: \DayTask.subject)
+    var dayTasks: [DayTask] = []
+
     init(
         name: String,
         accentHex: String = "9A8C98",
         dailyMinutes: Int = 60,
         periodsPerWeek: Int = 5,
         isEnrichment: Bool = false,
+        dayModeRaw: String = "time",
         position: Int = 0
     ) {
         self.name = name
@@ -48,6 +59,7 @@ final class Subject {
         self.dailyMinutes = dailyMinutes
         self.periodsPerWeek = periodsPerWeek
         self.isEnrichment = isEnrichment
+        self.dayModeRaw = dayModeRaw
         self.position = position
     }
 
@@ -141,5 +153,44 @@ final class StudySession {
         self.note = note
         self.subject = subject
         self.topic = topic
+    }
+}
+
+/// A concrete task on a specific calendar day in task mode.
+///
+/// Derived tasks originate from topics; ad hoc tasks are entered by the user.
+/// Persisted rows store the user's tick and ad hoc items.
+@Model
+final class DayTask {
+    var id: UUID = UUID()
+    var date: Date = Date.now
+    var title: String = ""
+    var isDone: Bool = false
+    var topicID: UUID? = nil
+    var plannedMinutesHint: Int = 0
+    var isAdHoc: Bool = false
+    var position: Int = 0
+    var createdAt: Date = Date.now
+
+    var subject: Subject?
+
+    init(
+        date: Date = .now,
+        title: String = "",
+        isDone: Bool = false,
+        topicID: UUID? = nil,
+        plannedMinutesHint: Int = 0,
+        isAdHoc: Bool = false,
+        position: Int = 0,
+        subject: Subject? = nil
+    ) {
+        self.date = date
+        self.title = title
+        self.isDone = isDone
+        self.topicID = topicID
+        self.plannedMinutesHint = plannedMinutesHint
+        self.isAdHoc = isAdHoc
+        self.position = position
+        self.subject = subject
     }
 }

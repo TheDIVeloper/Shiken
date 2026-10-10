@@ -46,9 +46,12 @@
 		AFD409EDE663BB39766B54E3 /* TimetableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8EEB655E3419C159534243 /* TimetableTests.swift */; };
 		B2D84D9F27D788C65558134D /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12AED3EA735071C908795C /* ReviewView.swift */; };
 		B7B4AE0E4FCD28975931A7F1 /* PlanOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE25B421F8A4F77AD4F961 /* PlanOverviewView.swift */; };
+		BFB080F075BA46B66185890D /* DayTaskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */; };
 		BFCCB50ACDE34A6859933DEC /* ShikenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25069F6CB31B7E2936DFDA66 /* ShikenApp.swift */; };
 		C33D97A80669F9802B2CAA46 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
+		C7E6059F6753A4657BF7F637 /* DayTaskEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B866AC40D4D57EC76A60BF2D /* DayTaskEngineTests.swift */; };
 		CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
+		CFFDFF56BC62490CFD6190D4 /* DayTaskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */; };
 		DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */; };
 		E48171DC11A6C5B84B8F4BD1 /* OverviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0458979F5CEA5B000DD89294 /* OverviewEngine.swift */; };
 		E68149D9ED26F617452DADAF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B38CCC4A2D72B94055278 /* SettingsView.swift */; };
@@ -91,9 +94,11 @@
 		8BB36DD482A967056167107B /* Subject+Planning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Subject+Planning.swift"; sourceTree = "<group>"; };
 		998D63667ACA1E7B43989DD2 /* Timetable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timetable.swift; sourceTree = "<group>"; };
 		A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
+		A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayTaskEngine.swift; sourceTree = "<group>"; };
 		A77494B5E513600EE33C0846 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
 		AACF642EDBDE1FC60837DF0C /* Shiken iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Shiken iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2BA4EE1925DE1220042705B /* ShikenModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShikenModels.swift; sourceTree = "<group>"; };
+		B866AC40D4D57EC76A60BF2D /* DayTaskEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayTaskEngineTests.swift; sourceTree = "<group>"; };
 		BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderSchedulerTests.swift; sourceTree = "<group>"; };
 		C09996961FCC3572C0289AD6 /* FocusTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimer.swift; sourceTree = "<group>"; };
 		CA951AAAA98ABE970F122101 /* UndoManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoManager.swift; sourceTree = "<group>"; };
@@ -120,6 +125,7 @@
 			children = (
 				27B3F1DAE51818FBA2367507 /* AssessmentSyncTests.swift */,
 				54EA3058345B50A5463F5C65 /* BacklogEngineTests.swift */,
+				B866AC40D4D57EC76A60BF2D /* DayTaskEngineTests.swift */,
 				061895A5B9425F7B697B60EE /* OverviewEngineTests.swift */,
 				DA2563FC9D78BEEBB017B6D3 /* PlannerEngineTests.swift */,
 				BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */,
@@ -143,6 +149,7 @@
 			children = (
 				76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */,
 				16ADCB0F880F1588FFF52907 /* ContentView.swift */,
+				A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */,
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
 				C09996961FCC3572C0289AD6 /* FocusTimer.swift */,
 				A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */,
@@ -296,6 +303,7 @@
 			files = (
 				9DAD20300053E9BC6B082255 /* BacklogEngine.swift in Sources */,
 				1184D3C7BDB6D646F57BE776 /* ContentView.swift in Sources */,
+				BFB080F075BA46B66185890D /* DayTaskEngine.swift in Sources */,
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
 				87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */,
 				F7FFA5574FB6612FB2E0F33B /* FocusView.swift in Sources */,
@@ -323,6 +331,7 @@
 			files = (
 				7AF9BF5824E4784A27FC8963 /* AssessmentSyncTests.swift in Sources */,
 				76EAC2F4A208785732434773 /* BacklogEngineTests.swift in Sources */,
+				C7E6059F6753A4657BF7F637 /* DayTaskEngineTests.swift in Sources */,
 				DCE1CD6F0317D3E9330B9321 /* OverviewEngineTests.swift in Sources */,
 				3CF1317B5F0DF180EC6EC369 /* PlannerEngineTests.swift in Sources */,
 				596633D6B09CD84BBC7149AC /* ReminderSchedulerTests.swift in Sources */,
@@ -338,6 +347,7 @@
 			files = (
 				AE9E961BEBF68A55EBD429FC /* BacklogEngine.swift in Sources */,
 				365C9C6B3EA16633CCBE8F72 /* ContentView.swift in Sources */,
+				CFFDFF56BC62490CFD6190D4 /* DayTaskEngine.swift in Sources */,
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
 				4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */,
 				1D1D9EE46B2478F18E463892 /* FocusView.swift in Sources */,

@@ -49,6 +49,7 @@ extension Subject {
             name: name,
             accentHex: accentHex,
             dailyMinutes: dailyMinutes,
+            dayModeRaw: dayModeRaw,
             topics: topicPlans,
             assessments: assessmentRefs
         )
