@@ -71,8 +71,8 @@ enum Migration {
 }
 
 /// SwiftData stores columns on the object itself, so the retired `examDate`
-/// attribute is read reflectively. If it is gone — a fresh install, or a store
-/// written after the migration — we fall back to a sensible default rather than
+/// attribute is read reflectively. If it is gone (on a fresh install, or a store
+/// written after the migration), we fall back to a sensible default rather than
 /// failing, because a subject with no date simply has no plan yet.
 private enum LegacyExamDateStore {
     static func examDate(for subject: Subject) -> Date {

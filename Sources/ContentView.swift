@@ -6,6 +6,7 @@ enum SidebarSelection: Hashable {
     case focus
     case sessions
     case review
+    case errorLog
     case settings
     case subject(UUID)
 }
@@ -43,6 +44,8 @@ struct ContentView: View {
                         .tag(SidebarSelection.sessions)
                     Label("Review", systemImage: "chart.bar.xaxis")
                         .tag(SidebarSelection.review)
+                    Label("Error Log", systemImage: "exclamationmark.bubble")
+                        .tag(SidebarSelection.errorLog)
                 }
 
                 Section("Subjects") {
@@ -170,6 +173,8 @@ struct ContentView: View {
             SessionLogView()
         case .review:
             ReviewView()
+        case .errorLog:
+            ErrorLogView()
         case .settings:
             SettingsView()
         case .subject(let id):

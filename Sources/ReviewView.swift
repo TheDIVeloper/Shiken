@@ -5,6 +5,7 @@ struct ReviewView: View {
     @Query(sort: \Subject.position) private var subjects: [Subject]
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
     @Query private var dayTasks: [DayTask]
+    @Query private var revisionErrors: [RevisionError]
 
     private var dayTaskRecords: [DayTaskRecord] {
         dayTasks.compactMap { task in
@@ -75,7 +76,8 @@ struct ReviewView: View {
                     )
                 } else {
                     ForEach(reviews, id: \.subjectID) { review in
-                        SubjectReviewCard(review: review)
+                        let errorCount = revisionErrors.filter { $0.subject?.id == review.subjectID && !$0.isResolved }.count
+                        SubjectReviewCard(review: review, activeErrors: errorCount)
                     }
                 }
             }
@@ -125,6 +127,7 @@ struct ReviewView: View {
 
 private struct SubjectReviewCard: View {
     let review: SubjectReview
+    let activeErrors: Int
 
     private var accent: Color { DesignSystem.hexColor(review.accentHex) }
 
@@ -136,6 +139,12 @@ private struct SubjectReviewCard: View {
                     .font(.system(size: DesignSystem.typeTitle(), weight: .semibold))
                 Spacer()
                 gapChip
+            }
+
+            if activeErrors > 0 {
+                Label("\(activeErrors) active \(activeErrors == 1 ? "error" : "errors") in revision log", systemImage: "exclamationmark.bubble")
+                    .font(.system(size: DesignSystem.typeCaption()))
+                    .foregroundStyle(.secondary)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: DesignSystem.spaceXL()) {
@@ -245,7 +254,7 @@ private struct TopicReviewRow: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
 
-            Text(topic.gapMinutes == 0 ? "—" : (topic.gapMinutes > 0 ? "+\(topic.gapMinutes)" : "\(topic.gapMinutes)"))
+            Text(topic.gapMinutes == 0 ? "0m" : (topic.gapMinutes > 0 ? "+\(topic.gapMinutes)" : "\(topic.gapMinutes)"))
                 .font(.system(size: DesignSystem.typeCaption(), weight: .semibold))
                 .monospacedDigit()
                 .foregroundStyle(topic.gapMinutes >= 0 ? accent : .red)

@@ -1,6 +1,6 @@
 import Foundation
 
-// Pure planned-vs-actual analysis. No SwiftData — views map models into these
+// Pure planned-vs-actual analysis. No SwiftData: views map models into these
 // value types. This is where the app earns its name: the honest gap between
 // what was scheduled and what actually happened.
 

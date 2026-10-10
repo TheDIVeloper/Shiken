@@ -93,7 +93,7 @@ final class Assessment {
 final class Topic {
     var id: UUID = UUID()
     var title: String = ""
-    // Relative share of the week's study time (1–100). The planner splits the
+    // Relative share of the week's study time (1 to 100). The planner splits the
     // dailyMinutes x 7 week across topics by this share; it is not exact minutes.
     var weight: Int = 20
     var position: Int = 0

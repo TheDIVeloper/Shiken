@@ -13,6 +13,7 @@ struct FocusView: View {
 
     @State private var subjectID: UUID?
     @State private var topicID: UUID?
+    @State private var showingLogError = false
 
     init() {
         let storedLength = UserDefaults.standard.integer(forKey: "focusLength")
@@ -75,6 +76,19 @@ struct FocusView: View {
                 record(completed)
                 timer.lastCompleted = nil
             }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingLogError = true
+                } label: {
+                    Label("Log error", systemImage: "exclamationmark.bubble")
+                }
+                .help("Record a mistake in the Error Log")
+            }
+        }
+        .sheet(isPresented: $showingLogError) {
+            LogErrorSheet(subjects: subjects)
         }
     }
 

@@ -9,6 +9,7 @@ struct PlanOverviewView: View {
     @Query(sort: \StudySession.startedAt, order: .reverse) private var sessions: [StudySession]
     @Query private var blocks: [PlanBlock]
     @Query private var dayTasks: [DayTask]
+    @Query private var revisionErrors: [RevisionError]
 
     @Environment(\.modelContext) private var ctx
 
@@ -103,6 +104,10 @@ struct PlanOverviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignSystem.spaceXL()) {
                 header
+
+                if errorsDueCount > 0 {
+                    errorsDueBanner
+                }
 
                 if subjects.isEmpty {
                     emptyState
@@ -235,6 +240,30 @@ struct PlanOverviewView: View {
                 )
             }
         }
+    }
+
+    private var errorsDueCount: Int {
+        revisionErrors.filter {
+            !$0.isResolved && ErrorLogEngine.isDue(nextReviewDate: $0.nextReviewDate, isResolved: $0.isResolved, on: selectedDate)
+        }.count
+    }
+
+    private var errorsDueBanner: some View {
+        HStack(spacing: DesignSystem.spaceS()) {
+            Image(systemName: "exclamationmark.bubble")
+                .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                .foregroundStyle(.orange)
+            Text("\(errorsDueCount) \(errorsDueCount == 1 ? "error" : "errors") due for spaced review")
+                .font(.system(size: DesignSystem.typeCaption(), weight: .medium))
+                .foregroundStyle(.primary)
+            Spacer()
+        }
+        .padding(.horizontal, DesignSystem.spaceM())
+        .padding(.vertical, DesignSystem.spaceS())
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.radiusCard(), style: .continuous)
+                .fill(Color.orange.opacity(0.1))
+        )
     }
 
     // MARK: Header

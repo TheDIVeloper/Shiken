@@ -249,7 +249,7 @@ struct SubjectEditorSheet: View {
         Section {
             // Labeled rows rather than bare controls: a bare TextField in a Form
             // gives no visible edge, so the only cue that you can type is the
-            // caret — which is not discoverable.
+            // caret, which is not discoverable.
             ForEach(drafts.indices, id: \.self) { index in
                 VStack(alignment: .leading, spacing: DesignSystem.spaceXS()) {
                     TextField("Assessment name", text: $drafts[index].title)

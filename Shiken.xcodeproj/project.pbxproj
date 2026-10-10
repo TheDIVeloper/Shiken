@@ -21,6 +21,7 @@
 		4F61BC5B8605C7E079D344CD /* Timetable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998D63667ACA1E7B43989DD2 /* Timetable.swift */; };
 		4FF1BC1F62C8573D7F9F5BC3 /* ReviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9FE9F4CF9D6EB1D85D5231 /* ReviewEngine.swift */; };
 		53CDF644D4E4F476B7D879C8 /* PlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3015A0AD48FABD017F3E8D /* PlannerView.swift */; };
+		5445A9B288A6F29367736FA0 /* ErrorLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0F7BEA38DE25E476E6A732 /* ErrorLogView.swift */; };
 		55780889CC6D0CC3C586B930 /* Subject+Planning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB36DD482A967056167107B /* Subject+Planning.swift */; };
 		57D9E3C3274BDAD9B9D8C319 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B38CCC4A2D72B94055278 /* SettingsView.swift */; };
 		596633D6B09CD84BBC7149AC /* ReminderSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE9A2DF5BC4B6829FF6946B9 /* ReminderSchedulerTests.swift */; };
@@ -61,6 +62,7 @@
 		E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3074D790E060616F6B0069D /* DesignSystem.swift */; };
 		F0D0957CB511212B21C4989F /* PlannerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A55A656AD6D69DEE215743E /* PlannerEngine.swift */; };
 		F35F441CB1BB2206B67DB1E3 /* UndoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA951AAAA98ABE970F122101 /* UndoManager.swift */; };
+		F77FEE67960622A883F49234 /* ErrorLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0F7BEA38DE25E476E6A732 /* ErrorLogView.swift */; };
 		F7FFA5574FB6612FB2E0F33B /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */; };
 		FF27010E27BA1A0C07D90D25 /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77494B5E513600EE33C0846 /* ReminderScheduler.swift */; };
 /* End PBXBuildFile section */
@@ -92,6 +94,7 @@
 		3D4B38CCC4A2D72B94055278 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4CCE39D2C81C2D68F59EF95B /* SubjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectsView.swift; sourceTree = "<group>"; };
 		54EA3058345B50A5463F5C65 /* BacklogEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogEngineTests.swift; sourceTree = "<group>"; };
+		5D0F7BEA38DE25E476E6A732 /* ErrorLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLogView.swift; sourceTree = "<group>"; };
 		6A4B6FC86FC5088D4A2A5324 /* UndoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoTests.swift; sourceTree = "<group>"; };
 		6BE906B9EA86B62AB27CE242 /* SessionLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLogView.swift; sourceTree = "<group>"; };
 		76DD4F213B70ED39AA7BA006 /* BacklogEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacklogEngine.swift; sourceTree = "<group>"; };
@@ -158,6 +161,7 @@
 				A0C5352785C2736915D7CD29 /* DayTaskEngine.swift */,
 				F3074D790E060616F6B0069D /* DesignSystem.swift */,
 				8E8EA9A171C062503DBD45EB /* ErrorLogEngine.swift */,
+				5D0F7BEA38DE25E476E6A732 /* ErrorLogView.swift */,
 				C09996961FCC3572C0289AD6 /* FocusTimer.swift */,
 				A0A3ABAFD31AE26C63EDFE4F /* FocusView.swift */,
 				0458979F5CEA5B000DD89294 /* OverviewEngine.swift */,
@@ -313,6 +317,7 @@
 				BFB080F075BA46B66185890D /* DayTaskEngine.swift in Sources */,
 				CC9844C406AE500F5DE2FF3F /* DesignSystem.swift in Sources */,
 				7D2D4C7C68375CD494C97102 /* ErrorLogEngine.swift in Sources */,
+				5445A9B288A6F29367736FA0 /* ErrorLogView.swift in Sources */,
 				87FEA6B06B58F014813324C7 /* FocusTimer.swift in Sources */,
 				F7FFA5574FB6612FB2E0F33B /* FocusView.swift in Sources */,
 				4D6EB3BD54D96C481513CD4B /* OverviewEngine.swift in Sources */,
@@ -359,6 +364,7 @@
 				CFFDFF56BC62490CFD6190D4 /* DayTaskEngine.swift in Sources */,
 				E9DD1CD379081C39532A398C /* DesignSystem.swift in Sources */,
 				C60A18D3095C93D655A99B80 /* ErrorLogEngine.swift in Sources */,
+				F77FEE67960622A883F49234 /* ErrorLogView.swift in Sources */,
 				4E4FAFD0121C85EF3A3B210D /* FocusTimer.swift in Sources */,
 				1D1D9EE46B2478F18E463892 /* FocusView.swift in Sources */,
 				E48171DC11A6C5B84B8F4BD1 /* OverviewEngine.swift in Sources */,
